@@ -1,0 +1,561 @@
+{% extends 'layout/users.html' %}
+{% block title %}College Manager | ARDS{% endblock %}
+{% block style %}
+<link rel="stylesheet" href="{{url_for('static', filename='css/admin.css')}}">
+{% endblock %}
+{% block content %}
+
+<section id="container_collapsedAll">
+    <div class="page-header-title p-2 mb-2">
+        <h5 class="fw-bold fs-def">College and Course Manager </h5>
+    </div>
+    <div class="d-flex justify-content-end gap-3">
+        <div class="me-5" style="width: 30vw;min-width:400px;">
+            <input type="text" name="filterCards"
+                class="form-control w-full text-truncate rounded-3 mx-3 border-1 fs-medium" id="filterCards"
+                oninput="searchCards()" placeholder="Search for College..." style="height: 100%;">
+        </div>
+        <button class="fs-medium fw-medium px-4" data-bs-toggle="modal" data-bs-target="#addColleges_modal">
+            <span class="fc-default fa-solid fa-plus me-2 align-self-center">
+            </span>College</button>
+        <button class="fs-medium fw-medium px-4" data-bs-toggle="modal" data-bs-target="#addCourses_modal">
+            <span class="fc-default fa-solid fa-plus me-2 align-self-center">
+            </span>Courses</button>
+    </div>
+
+    <div id="college_displayCards" class="mt-3 mb-5 d-flex align-content-start flex-wrap gap-3 p-3"></div>
+</section>
+
+{% endblock%}
+{% block modals%}
+{% include '/partials/modals/account_modals.html' %}
+{% include '/partials/modals/college_manager_modals.html' %}
+{% endblock%}
+{% block scripts %}
+<script src="{{url_for('static',filename='js/allertBuilder.js')}}"></script>
+<script>
+    var collegesArray = [];
+    var coursesArray = [];
+
+    function populateColleges() {
+        collegesArray = [];
+        coursesArray = [];
+        fetch('/admin/colleges/manage/data/fetch-colleges/courses-list')
+            .then(response => response.json())
+            .then(colleges => {
+
+                let collegeDataDiv = document.getElementById('college_displayCards');
+                let collegeSelect = document.getElementById('addon_College');
+                let collegeMoveSelect = document.getElementById('movetoCollege');
+                collegeSelect.innerHTML = `<option value= " "></option>`;
+                collegeMoveSelect.innerHTML = `<option value= " "></option>`;
+                collegeDataDiv.innerHTML = '';
+
+                colleges.forEach(college => {
+
+                    let college_id = college.college_id;
+                    let college_name = college.college_name;
+                    let college_description = college.college_description;
+                    let courseslist = '';
+                    let collegeOption = '';
+                    let tempCoursesArray = [];
+
+                    collegeOption = `<option value= "${college_id}"> (${college_name}) ${college_description}</option>`;
+
+                    if (college.courses && Array.isArray(college.courses)) {
+                        if (college.courses.length > 0) {
+
+                            college.courses.forEach(course => {
+                                let course_name = course.course_name;
+                                let course_id = course.course_id;
+                                let course_description = course.course_description;
+                                courseslist += `<li class="list-group-item courses_item"><span class="fw-medium me-2">(${course_name})</span> ${course_description} </li>`;
+                                tempCoursesArray.push({ course_id: course_id, course_name: course_name, course_description: course_description });
+                                coursesArray.push({ course_id: course_id, course_name: course_name, course_description: course_description });
+                            });
+                        }
+                        else {
+                            courseslist = '<span class="text-center align-self-center p-2 fc-gray">No courses data</span>';
+                        }
+                    }
+
+                    let card = `<div class="college-entry card border-0" id="college_cards border-0 prevent-select">
+                                    <div class="accordion" id="parent${college_id}">
+                                        <div class="accordion-item">
+                                            <div class="accordion-header p-0 border-0 m-0" id="label${college_id}">
+                                                <button class="w-full accordion-button collapsed px-4 d-flex justify-content-between shadow-none" 
+                                                type="button" data-bs-toggle="collapse" 
+                                                data-bs-target="#${college_id}" 
+                                                aria-expanded="false"
+                                                aria-controls="${college_id}"
+                                                style="min-width:370px; min-height:50px;">
+                                                            <h5 class="fc-light ps-2 pe-4 fs-def" id="card_collegeName">
+                                                              <span class="fw-bold me-2">(${college_name})</span> <span class="">${college_description}</span>
+                                                            </h5>
+                                                </button>
+                                            </div>
+                                                <div id="${college_id}" class="accordion-collapse collapse"
+                                                aria-labelledby="label${college_id}"
+                                                data-bs-parent="#parent${college_id}">
+                                                    <div class="accordion-body p-0 m-0">
+                                                        <div class="card-body border-0 rounded-bottom-3 p-2">
+                                                            <div id="courses_list">
+                                                                <ul class="list-group list-group-flush fs-medium">
+                                                                    ${courseslist} 
+                                                                    <li class="list-group-item d-flex justify-content-end p-2">
+                                                                        <button class="button no-border-button not-hover fs-def p-2 d-flex align-items-center" onclick="show_editModal(${college_id})" id="college_managerSettings"
+                                                                        data-toggle="tooltip" data-placement="top" title="Manage College"> 
+                                                                            <i class="fa-solid fa-ellipsis"></i> 
+                                                                        </button>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div> `;
+
+                    // Add an event listener for double clicks on the document
+                    document.addEventListener('dblclick', function (event) {
+                        // Check if the double click occurred outside of the accordion buttons or cards
+                        const isOutsideAccordion = !event.target.closest('.accordion-button');
+
+                        if (isOutsideAccordion) {
+                            // Get all the accordion items
+                            const accordionItems = document.querySelectorAll('.accordion-item');
+                            // Collapse each accordion item
+                            accordionItems.forEach(item => {
+                                item.querySelector('.accordion-button').classList.add('collapsed');
+
+                                // Change 'aria-expanded' attribute to 'false'
+                                item.querySelector('.accordion-button').setAttribute('aria-expanded', 'false');
+
+                                // Remove 'show' class from the content
+                                item.querySelector('.accordion-collapse').classList.remove('show');
+                            });
+                        }
+                    });
+
+                    collegeDataDiv.innerHTML += card;
+                    collegeSelect.innerHTML += collegeOption;
+                    collegeMoveSelect.innerHTML += collegeOption;
+
+                    const collegeObject = {
+                        college_id,
+                        college_name,
+                        college_description,
+                        courses: tempCoursesArray
+                    };
+                    collegesArray.push(collegeObject);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching colleges:', error);
+            });
+
+    }
+
+    populateColleges();
+
+    function verifyCollege() {
+        let submit_button = document.getElementById('button_showConfirmationAddColleges');
+        let collegeAbbrev = document.getElementById('newcollege_name').value.trim();
+        let collegeName = document.getElementById('newcollege_nameDescription').value.trim();
+
+        let foundCollegeName = !!collegesArray.find(college => college.college_name.toLowerCase() === collegeAbbrev.toLowerCase());
+        let foundCollegeDesc = !!collegesArray.find(college => college.college_description.toLowerCase() === collegeName.toLowerCase());
+
+        // Check for invalid abbrevation
+        if (foundCollegeName) {
+            document.getElementById('newcollege_name').classList.add('is-invalid');
+            submit_button.disabled = true;
+        } else {
+            document.getElementById('newcollege_name').classList.remove('is-invalid');
+        }
+
+        // Check for invalid college name
+        if (foundCollegeDesc) {
+            document.getElementById('newcollege_nameDescription').classList.add('is-invalid');
+            submit_button.disabled = true;
+        } else {
+            document.getElementById('newcollege_nameDescription').classList.remove('is-invalid');
+        }
+
+        if (!foundCollegeName && !foundCollegeDesc && collegeAbbrev !== '' && collegeAbbrev !== null && collegeName !== '' && collegeName !== null) {
+            submit_button.disabled = false;
+        }
+    }
+
+    function verifyCourse() {
+        let submit_button = document.getElementById('button_showConfirmationAddCourses');
+        let College = document.getElementById('addon_College').value.trim();
+        let courseAbbrev = document.getElementById('newcourse_name').value.trim();
+        let courseName = document.getElementById('newcourse_nameDescription').value.trim();
+
+        let foundCourseName = !!coursesArray.find(course => course.course_name.toLowerCase() === courseAbbrev.toLowerCase());
+        let foundCourseDesc = !!coursesArray.find(course => course.course_description.toLowerCase() === courseName.toLowerCase());
+
+        // Check for invalid abbrevation
+        if (foundCourseName) {
+            document.getElementById('newcourse_name').classList.add('is-invalid');
+            submit_button.disabled = true;
+        } else {
+            document.getElementById('newcourse_name').classList.remove('is-invalid');
+        }
+
+        // Check for invalid course name
+        if (foundCourseDesc) {
+            document.getElementById('newcourse_nameDescription').classList.add('is-invalid');
+            submit_button.disabled = true;
+        } else {
+            document.getElementById('newcourse_nameDescription').classList.remove('is-invalid');
+        }
+
+        if (!foundCourseName && !foundCourseDesc && College !== "" && courseAbbrev !== '' && courseAbbrev !== null && courseName !== '' && courseName !== null) {
+            submit_button.disabled = false;
+        }
+    }
+
+    document.getElementById('newcollege_name').addEventListener('input', verifyCollege);
+    document.getElementById('newcollege_nameDescription').addEventListener('input', verifyCollege);
+    document.getElementById('addon_College').addEventListener('input', verifyCourse);
+    document.getElementById('newcourse_name').addEventListener('input', verifyCourse);
+    document.getElementById('newcourse_nameDescription').addEventListener('input', verifyCourse);
+
+    function clearForm(form_id) {
+        let form = document.querySelector(form_id);
+        let inputs = form.querySelectorAll('input');
+
+        for (let i = 0; i < inputs.length; i++) {
+            inputs[i].value = '';
+        }
+    }
+
+    function searchCards() {
+        var input, filter, cards, cardContainer, college_name, course, i;
+        input = document.getElementById("filterCards");
+        filter = input.value.toUpperCase();
+        cardContainer = document.getElementById("college_displayCards");
+        cards = cardContainer.getElementsByClassName("card");
+
+        for (i = 0; i < cards.length; i++) {
+            college_name = cards[i].querySelector("#card_collegeName");
+            course_names = cards[i].querySelectorAll('.courses_item');
+            var matched = false;
+
+            if (college_name.innerText.toUpperCase().indexOf(filter) > -1) {
+                matched = true;
+            }
+            // Loop through each course name and check if any match the filter
+            for (j = 0; j < course_names.length; j++) {
+                if (course_names[j].innerText.toUpperCase().indexOf(filter) > -1) {
+                    matched = true;
+                    break; // Break out of the loop since a match is found
+                }
+            }
+
+            if (matched) {
+                cards[i].style.display = "";
+            } else {
+                cards[i].style.display = "none";
+            }
+        }
+    }
+
+</script>
+<script>
+    function dynamicAppendCollege(){
+        let collegeName = $('#newcollege_name').val();
+        let collegeDescription = $('#newcollege_nameDescription').val();
+
+        $('#confirmation_college_name').text(collegeName);
+        $('#confirmation_college_description').text(collegeDescription);
+    }
+
+    $('#confirm_addCollege').on('click', function (event) {
+        event.preventDefault();
+        let college_name = $('#newcollege_name').val();
+        let newcollege_nameDescription = $('#newcollege_nameDescription').val()
+        
+        let formData = {
+            'newcollege_abbrev': college_name,
+            'newcollege_name': newcollege_nameDescription,
+        };
+        //send the data through ajax and recieve a corresponding status report of query
+        $.ajax({
+            url: '/admin/colleges/manage/data/add/register-data',
+            type: 'POST',
+            data: formData,
+            headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+            success: function (data) {
+                populateColleges();
+                generateNotification('addCollege', data.query_result);
+            },
+            //handle the ajax error 
+            error: function (error) {
+                console.error('Error:', error);
+                generateNotification('addCollege', 'error');
+            }
+        });
+    });
+
+    $('#confirm_addCourse').on('click', function (event) {
+        event.preventDefault();
+        let addon_College = $('#addon_College').val();
+        let newcourse_name = $('#newcourse_name').val();
+        let newcourse_nameDescription = $('#newcourse_nameDescription').val();
+
+        let formData = {
+            'addon_College': addon_College,
+            'newcourse_abbrev': newcourse_name,
+            'newcourse_name': newcourse_nameDescription,
+        };
+        //send the data through ajax and recieve a corresponding status report of query
+        $.ajax({
+            url: '/admin/colleges/manage/data/courses/append/register-data',
+            type: 'POST',
+            data: formData,
+            headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+            success: function (data) {
+                populateColleges();
+                generateNotification('addCourse', data.query_result);
+            },
+            //handle the ajax error 
+            error: function (error) {
+                console.error('Error:', error);
+                generateNotification('addCourse', 'error');
+            }
+        });
+    });
+</script>
+<script>
+    function show_editModal(input_colID) {
+        // Assuming you have already fetched the collegesArray
+        college_id = parseInt(input_colID)
+        const college = collegesArray.find(college => college.college_id === college_id);
+
+        if (college) {
+            let containerPopulate = document.getElementById('populate_coursesList');
+            let collegeField = document.getElementsByClassName('update_collegeField')[0];
+
+            let collegeDelete = document.getElementsByClassName('deleteCollege-button')[0];
+            collegeDelete.id = college.college_id;
+
+            collegeField.value = college.college_name;
+            collegeField.placeholder = college.college_name;
+            collegeField.id = college.college_id;
+
+            let collegeDescriptionField = document.getElementsByClassName('update_collegeDescriptionField')[0];
+            collegeDescriptionField.value = college.college_description;
+            collegeDescriptionField.placeholder = college.college_description;
+            collegeDescriptionField.id = college.college_id;
+
+            containerPopulate.innerHTML = ''; // Clear existing content
+
+            if (college.courses.length > 0) {
+                let titleCourse = `<div class="fw-medium mt-3">Courses :</div>`;
+                containerPopulate.innerHTML += titleCourse;
+
+                college.courses.forEach(course => {
+                    let inputField = `  <div id="${course.course_id}" class="py-2 course-item">
+                                            <div class="d-flex gap-3 w-full">
+                                                <input type="text" class="form-control" id="${course.course_id}" name="update_course" value="${course.course_name}" placeholder="${course.course_name}" style="width: 100px;" required>
+                                                <input type="text" class="form-control flex-fill" id="${course.course_id}" name="update_courseDescription" value="${course.course_description}" placeholder="${course.course_description}" required>
+                                                <div class="d-flex gap-2">
+                                                    <span class="p-2" style="max-width:50px;" data-toggle="tooltip" data-placement="top" title="Transfer course to another college">
+                                                        <a class="m-0" onclick="moveCourse(${college.college_id}, ${course.course_id})" >
+                                                             <span class="fa-solid fa-circle-chevron-right"></span></a>
+                                                    </span>
+                                                    <span class="p-2" style="max-width:50px;" data-toggle="tooltip" data-placement="top" title="Delete Course">
+                                                        <a class="m-0" onclick="deleteCourse(${course.course_id})"> 
+                                                            <span class="fa-solid fa-trash"></span></a>
+                                                    </span>
+                                                </div>
+                                                
+                                            </div>
+                                        </div> `;
+                    containerPopulate.innerHTML += inputField;
+                });
+            }
+            else {
+                containerPopulate.innerHTML += `<div class="p-3 my-3 text-center fc-gray">No Courses Registered ...</div>`;
+            }
+            // Show the modal
+            $('#editCollege_modal').modal('show');
+        }
+    }
+
+    function moveCourse(college_id, course_id) {
+        let default_college = college_id;
+        const college = collegesArray.find(college => college.college_id === college_id);
+        const course = college.courses.find(course => course.course_id === course_id);
+
+        let inputFields = document.getElementsByClassName('moveCourse_target')[0];
+        inputFields.value = "(" + course.course_name + ") " + course.course_description;
+        inputFields.id = course_id;
+
+        let toCollege = document.getElementById('movetoCollege');
+        toCollege.value = college_id;
+
+        $('#editCollege_modal').modal('hide');
+        $('#moveCourses_modal').modal('show');
+
+        let collegeText = document.getElementById('modal_collgeChangeText');
+        let courseText = document.getElementById('modal_courseChangeText');
+
+        collegeText.innerText = $('#movetoCollege option:selected').text();
+        courseText.innerText = course.course_name;
+
+        $('#confirm_changeCourse').on('click', function (event) {
+            event.preventDefault();
+
+            let moveCourse_target = course_id;
+            let movetoCollege = $('#movetoCollege').val();
+
+            let formData = {
+                'moveCourse_target': moveCourse_target,
+                'movetoCollege': movetoCollege,
+            };
+
+            $.ajax({
+                url: '/admin/colleges/manage/data/courses/unlink-course/move/update/register-college',
+                type: 'POST',
+                data: formData,
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    if (data) {
+                        populateColleges();
+                        generateNotification('moveCourses', data.query_result);
+                    }
+                },
+                //handle the ajax error 
+                error: function (error) {
+                    console.error('Error:', error);
+                    generateNotification('moveCourses', 'error');
+                }
+            });
+
+        });
+
+
+    }
+
+    $('#confirm_updateCollege').on('click', function (event) {
+        event.preventDefault();
+        let college_input = document.getElementsByClassName('update_collegeField')[0];
+        let college_Desc = document.getElementsByClassName('update_collegeDescriptionField')[0];
+        let college_id = college_input.id;
+        let college_name = college_input.value;
+        let college_description = college_Desc.value;
+
+        let inputContainer = document.getElementById('populate_coursesList');
+        let courses_data = [];
+
+        let course_items = document.getElementsByClassName('course-item');
+        Array.from(course_items).forEach(item => {
+            let courseId = item.id;
+            let update_course = item.querySelector('input[name="update_course"]').value;
+            let update_course_description = item.querySelector('input[name="update_courseDescription"]').value;
+            courses_data.push({ course_id: courseId, course_name: update_course, course_description: update_course_description });
+        });
+
+        const formData = {
+            college_id,
+            college_name,
+            college_description,
+            courses_data,
+        };
+
+        $.ajax({
+            url: '/admin/colleges/manage/data/college_details/courses/data-list/update',
+            type: 'POST',
+            data: JSON.stringify(formData),
+            contentType: 'application/json',
+            headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+            success: function (data) {
+                if (data) {
+                    populateColleges();
+                    generateNotification('updateCollege', data.query_result);
+                }
+            },
+            //handle the ajax error 
+            error: function (error) {
+                console.error('Error:', error);
+                generateNotification('updateCollege', 'error');
+            }
+        });
+    });
+
+    function removeCourseInList(courseID) {
+        var listContainer = document.getElementById('populate_coursesList');
+        var courseToRemove = listContainer.querySelector(`div[id="${courseID}"]`);
+
+        if (courseToRemove) {
+            courseToRemove.remove();
+        }
+    }
+
+    function deleteCourse(courseID) {
+        courseData = parseInt(courseID);
+        if (courseData) {
+            $('#editCollege_modal').modal('hide');
+            $('#deleteCourseModal').modal('show');
+
+            $('#confirm_deleteCourseEntry').on('click', function (event) {
+                event.preventDefault();
+
+                let formData = {
+                    'courseID': courseData,
+                };
+                $.ajax({
+                    url: '/admin/colleges/manage/data/courses/remove_data/delete-course',
+                    type: 'POST',
+                    data: formData,
+                    headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                    success: function (data) {
+                        if (data) {
+                            populateColleges();
+                            generateNotification('deleteCourses', data.query_result);
+                        }
+                    },
+                    //handle the ajax error 
+                    error: function (error) {
+                        console.error('Error:', error);
+                        generateNotification('deleteCourses', 'error');
+                    }
+                });
+            });
+        }
+    }
+
+    $('#confirm_deleteCollegeEntry').on('click', function (event) {
+        event.preventDefault();
+        let collegeDelete = document.getElementsByClassName('deleteCollege-button')[0];
+        collegeData = parseInt(collegeDelete.id);
+
+        let formData = {
+            'collegeID': collegeData,
+        };
+        $.ajax({
+            url: '/admin/colleges/manage/data/remove_data/delete_college',
+            type: 'POST',
+            data: formData,
+            headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+            success: function (data) {
+                if (data) {
+                    populateColleges();
+                    generateNotification('deleteCollege', data.query_result);
+                }
+            },
+            //handle the ajax error 
+            error: function (error) {
+                console.error('Error:', error);
+                generateNotification('deleteCollege', data.query_result);
+            }
+        });
+    });
+</script>
+{% endblock%}

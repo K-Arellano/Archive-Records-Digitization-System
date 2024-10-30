@@ -1,0 +1,438 @@
+{% extends 'layout/users.html' %}
+{% block title %}Benchmark | ARDS{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{{url_for('static', filename='node_modules/cropperjs/dist/cropper.min.css')}}">
+<script src="{{ url_for('static', filename='node_modules/cropperjs/dist/cropper.min.js') }}"></script>
+<link rel="stylesheet" href="{{url_for('static', filename='css/benchmark.css')}}">
+<link rel="stylesheet" href="{{url_for('static', filename='css/loadingAnimation.css')}}">
+{% endblock %}
+{% block content %}
+
+<section>
+    <div class="page-header-title p-2 mb-2">
+        <h5 class="fw-bold fs-def">Benchmark</h5>
+    </div>
+
+    <div class="d-flex justify-content-between gap-4" style="height: calc(100vh - 10rem ); min-height: 600px;">
+        <div class="flex-grow-1 p-2">
+            <div class="rounded-3 h-100">
+                <div class="h-100 w-100 d-flex justify-content-center align-items-center dashed-border" id="dropzone">
+                    <form action="/scanner" method="post" enctype="multipart/form-data" id="uploadForm">
+                        <input type="file" name="document_image" id="document_image" class="d-none" accept="image/*">
+                    </form>
+                    <div id="previewContainer" class="d-none border">
+                        <img class="m-auto" id="preview" alt="Preview">
+                        <div class="d-flex justify-content-end gap-3 fs-medium"
+                            style="position: absolute; right: 1rem; bottom: 0.5rem">
+                            <button id="cancel_image" class="border-1 fw-medium fs-medium px-4">Cancel</button>
+                            <button id="continueButton" class="border-0 fw-medium btn-green fs-medium px-4"> Save
+                            </button>
+                            <button id="submitOCR" class="fw-medium border-0 btn-orange d-none fs-medium px-4"
+                                data-bs-toggle="modal" data-bs-target="#ocr_confirmation">
+                                <span class="fa-solid fa-expand me-3"></span> Scan Text
+                            </button>
+                        </div>
+                    </div>
+                    <div class="drag-text text-center" id="dragText">
+                        <div><span class="fa-regular fa-image fw-bold p-2 mb-3" style="font-size: 100px;"></span></div>
+                        <h4 class="fw-bold mx-4">Drag & Drop your Image here </h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="width: 700px; width: auto;">
+            <div class="p-2">
+                <div class="table-fixed-head" id="student_listContainer">
+                    <table class="table w-100 table-sm table-borderless" id="studentList">
+                        <thead class="border-bottom fs-medium">
+                            <tr>
+                                <th class="text-center p-2 fs-def">
+                                    <input type="checkbox" class="checkbox form-check-input" id="select-all">
+                                </th>
+                                <th class="fs-medium">Surname</th>
+                                <th class="fs-medium">First name</th>
+                                <th class="fs-medium" style="width:50px"> M.I.</th>
+                                <th class="fs-medium" style="width:60px"> Suffix </th>
+                                <th class="fs-medium" style="width:100px"> WER% </th>
+                                <th class="fs-medium" style="width:100px"> CER% </th>
+                                <th class="fs-medium" class="px-2 text-center" style="width:24px">
+                                    <button class="px-2 py-0 border-0 no-border-button" id="populateInputs">
+                                        <span class="fa-solid fa-plus">
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <span class="d-flex justify-content-start gap-3 pt-2 w-full align-items-center">
+                    <button class="border-0 px-3 no-border-button" id="select_clear" data-bs-toggle="modal"
+                        data-bs-target="#clearSelctedList_confirmation"> <span
+                            class="fas fa-eraser me-2 fs-medium"></span>
+                        <span class="fs-small">Clear rows</span>
+                    </button>
+                    <button class="border-0 px-3 no-border-button" id="select_remove" data-bs-toggle="modal"
+                        data-bs-target="#deleteSelctedList_confirmation"> <span
+                            class="fa fa-trash me-2 fs-medium"></span>
+                        <span class="fs-small">Remove rows</span>
+                    </button>
+                </span>
+                <div class="d-flex justify-content-end pe-3 py-3 gap-3 w-full align-items-center">
+                    <span class="d-flex justify-content-between fs-medium flex-grow-1">
+                        <div class="fw-medium d-flex" style="min-width: 80px;">
+                            <span style="width: 75px;">Scan Time: </span>
+                            <div class="fw-bold px-2" id="scanTimeOCR" style="width: 50px;">0s</div>
+                        </div>
+                        <div class="fw-medium d-flex" style="min-width: 80px;">
+                            <span style="width: 75px;">Scan Type: </span>
+                            <div class="fw-bold px-2" id="scanType" style="width: 60px;">None</div>
+                        </div>
+                        <div class="fw-medium d-flex" style="min-width: 80px;">
+                            <span style="width: 70px;">Avg. WER: </span>
+                            <div class="fw-bold px-2" id="AverageWER_Result" style="width: 70px;">100.00%</div>
+                        </div>
+                        <div class="fw-medium d-flex" style="min-width: 80px;">
+                            <span style="width: 70px;">Avg. CER: </span>
+                            <div class="fw-bold px-2" id="AverageCER_Result" style="width: 70px;">100.00%</div>
+                        </div>
+                    </span>
+                    <button class="fs-medium border-0 fw-medium btn-orange px-4" id="insertBenchmarkData"
+                        data-bs-toggle="modal" data-bs-target="#saveBenchmarkModal" disabled> SAVE </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock%}
+{% block modals%}
+{% include '/partials/modals/account_modals.html' %}
+{% include '/partials/modals/scanner_modals.html' %}
+{% include '/partials/modals/benchmarking_modals.html' %}
+{% endblock%}
+{% block scripts %}
+<script src="{{url_for('static',filename='js/allertBuilder.js')}}"></script>
+<script src="{{url_for('static',filename='js/benchmark.js')}}"></script>
+<script src="{{url_for('static',filename='js/drag_drop.js')}}"></script>
+<script>
+    let scanningModal = new bootstrap.Modal(document.getElementById('scanningAnimation'));
+    let ocr_resultsList = [];
+    let xhr = null;
+
+    function updateTimerDisplay(milliseconds, type) {
+        let seconds = milliseconds / 1000;
+        let scantime = document.getElementById('scanTimeOCR');
+        let scantype = document.getElementById('scanType');
+        scantime.innerHTML = seconds.toFixed(2) + 's';
+        scantype.innerHTML = type;
+
+        document.getElementById('AverageWER_Result').innerText = '0.00%';
+        document.getElementById('AverageCER_Result').innerText = '0.00%';
+    }
+
+    function autoScanOCR() {
+        var formData = new FormData();
+        var file = $('#document_image')[0].files[0];
+        formData.append('document_image', file);
+
+        if (file) {
+            scanningModal.show();
+            let startTime = new Date().getTime();
+
+            xhr = $.ajax({
+                url: '/scanner/auto/true',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    // Calculate elapsed time
+                    let elapsedTime = new Date().getTime() - startTime;
+                    updateTimerDisplay(elapsedTime, "Auto");
+                    scanningModal.hide();
+                    if (Array.isArray(data)) {
+                        if (data.length > 0) {
+                            ocr_resultsList = data;
+                            populateResults(data);
+                            generateNotification('autoOCR', 'success');
+                        } else {
+                            let error_modal = new bootstrap.Modal(document.getElementById('error_ocr'));
+                            error_modal.show();
+                        }
+                    }
+                    else {
+                        generateNotification('autoOCR', data);
+                    }
+                },
+                error: function (error) {
+                    if (error.statusText !== 'abort') {
+                        console.error(error);
+                        scanningModal.hide();
+                        generateNotification('autoOCR', 'error');
+                    }
+                },
+            });
+        }
+    }
+
+    $('#ocr_auto').on('click', function (event) {
+        event.stopPropagation();
+        autoScanOCR();
+    });
+
+    // Event listener for abort button
+    $('#abortAutoScan').on('click', function () {
+        if (xhr) {
+            xhr.abort(); // Abort the ongoing AJAX request
+        }
+        scanningModal.hide();
+    });
+</script>
+<script>
+    var cropImage = document.getElementById('crop_imageSrc');
+    var cropper, reader, file;
+
+    $(document).ready(function () {
+
+        $('#ocr_manual').on('click', function () {
+            var fileInput = $("#document_image")[0];
+            var files = fileInput.files;
+
+            if (files && files.length > 0) {
+                var file = files[0];
+                var done = function (url) {
+                    cropImage.src = url;
+                    $('#ManualScanImageModal').modal('show');
+                };
+
+                if (URL) {
+                    done(URL.createObjectURL(file));
+                } else if (FileReader) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        done(reader.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            } else {
+                alert("Please select an image to crop.");
+            }
+        });
+    });
+
+    $('#ManualScanImageModal').on('shown.bs.modal', function () {
+        cropper = new Cropper(cropImage, {
+            aspectRatio: 0,
+            viewMode: 1,
+        });
+    }).on('hidden.bs.modal', function () {
+        cropper.destroy();
+        cropper = null;
+    });
+
+    $(document).on('click', '#crop_customOcr', function () {
+        let button = $(this);
+        button.prop('disabled', true); // Disable the button to prevent multiple clicks
+        button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span> Scanning...</span>');
+        let error_modal = new bootstrap.Modal(document.getElementById('error_ocr'));
+        canvas = cropper.getCroppedCanvas();
+        canvas.toBlob(function (blob) {
+            let formData = new FormData();
+            formData.append('document_image', blob, 'cropped_image.jpg');
+            // Start the timer
+            let startTime = new Date().getTime();
+
+            $.ajax({
+                url: '/scanner/auto/false',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    let elapsedTime = new Date().getTime() - startTime;
+                    updateTimerDisplay(elapsedTime, "Manual");
+                    button.html('Extract Text'); // Restore original button text
+                    button.prop('disabled', false); // Re-enable the button
+                    if (Array.isArray(data)) {
+                        if (data.length > 0) {
+                            ocr_resultsList = data;
+                            populateResults(data);
+                            generateNotification('manualOCR', 'success');
+                        } else {
+                            error_modal.show();
+                        }
+                    }
+                    else {
+                        generateNotification('manualOCR', data);
+                    }
+                },
+                error: function (error) {
+                    console.error(error);
+                    button.html('Extract Text'); // Restore original button text
+                    button.prop('disabled', false); // Re-enable the button
+                    generateNotification('manualOCR', 'error');
+                },
+            });
+        });
+    });
+
+</script>
+<script>
+    function getOCR_Result(students) {
+
+        var studentList = [];
+        if (students.length > 0) {
+            students.forEach(function (student, index) {
+
+                if (student.surname && student.firstname) {
+                    var student_name = student.surname.trim() + ', ' + student.firstname.trim();
+
+                    if (student.middlename && student.middlename.trim() !== '') {
+                        student_name += ' ' + student.middlename.trim() + '.';
+                    }
+
+                    if (student.suffixname && student.suffixname.trim() !== '') {
+                        student_name += ' ' + student.suffixname.trim() + '.';
+                    }
+
+                    var entry = {
+                        id: index, // Adjusted to start from 0
+                        student_name: student_name.trim(), // trim to remove extra spaces
+                    };
+                    studentList.push(entry);
+                }
+            });
+        }
+        return studentList;
+    }
+
+    function fetchrowValues() {
+        var studentList = [];
+        var rows = document.querySelectorAll('tbody tr');
+
+        let MaxIndex = 0;
+
+        rows.forEach(function (row) {
+            var id = parseInt(row.querySelector('.checkbox').id);
+            var student_name = '';
+            var student_surname = row.querySelector('#student_surname').value.trim();
+            var student_firstname = row.querySelector('#student_firstname').value.trim();
+            var student_middlename = row.querySelector('#student_middlename').value.trim();
+            var student_suffixname = row.querySelector('#student_suffixname').value.trim();
+
+            if (student_surname !== '' && student_firstname !== '') {
+                student_name = student_surname + ', ' + student_firstname;
+            }
+            else {
+                if (student_surname !== '') {
+                    student_name = student_surname;
+                }
+                if (student_firstname !== '') {
+                    student_name = student_firstname;
+                }
+            }
+
+            if (student_middlename !== '') {
+                student_name += ' ' + student_middlename + '.';
+            }
+            if (student_suffixname !== '') {
+                student_name += ' ' + student_suffixname + '.';
+            }
+
+            var student = {
+                id: id,
+                student_name: student_name.trim(),
+            };
+
+            studentList.push(student);
+        });
+
+        return studentList;
+    }
+
+    let benchData;
+
+    function checkAccuracyData() {
+        let corrected_data = fetchrowValues();
+        let ocr_data = getOCR_Result(ocr_resultsList);
+        let saveButton = document.getElementById('insertBenchmarkData');
+
+        if (ocr_data.length > 0 && corrected_data.length > 0) {
+            let formData = {
+                'corrected_data': corrected_data,
+                'ocr_data': ocr_data
+            };
+
+            let formDataJSON = JSON.stringify(formData);
+
+            if (formDataJSON) {
+                $.ajax({
+                    url: '/admin/benchmark-manager/manage/test_ocr/accuracy',
+                    type: 'POST',
+                    data: formDataJSON,
+                    contentType: 'application/json',
+                    headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                    dataType: 'json', // Specify dataType as JSON
+                    success: function (data) {
+                        if (data) {
+                            populateErrorRate(data.error_rate);
+                            document.getElementById('AverageWER_Result').innerText = data.average_WER.toFixed(2) + '%';
+                            document.getElementById('AverageCER_Result').innerText = data.average_CER.toFixed(2) + '%';
+                            benchData = data;
+                            if (saveButton.disabled == true) {
+                                saveButton.disabled = false;
+                            }
+                        }
+                    },
+                    error: function (error) {
+                        console.error('Error:', error);
+                        generateNotification('errorTester', 'error');
+                    },
+                });
+            }
+        }
+    }
+
+    $(document).on('click', '#confirm_saveBenchmark', function () {
+        if (benchData) {
+            var items = benchData.error_rate.length;
+            var scannerTime = document.getElementById('scanTimeOCR').innerText;
+            var scantype = document.getElementById('scanType').innerText;
+            var averageWER = benchData.average_WER;
+            var averageCER = benchData.average_CER;
+
+            let formData = {
+                'items': items,
+                'scantype': scantype,
+                'scannerTime': scannerTime,
+                'averageWER': averageWER,
+                'averageCER': averageCER
+            };
+
+            let formDataJSON = JSON.stringify(formData);
+
+            if (formDataJSON) {
+                $.ajax({
+                    url: '/admin/benchmark-manager/manage/bench_result/save-data',
+                    type: 'POST',
+                    data: formDataJSON,
+                    contentType: 'application/json',
+                    headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                    dataType: 'json', // Specify dataType as JSON
+                    success: function (data) {
+                        generateNotification('saveBenchmark', data);
+                    },
+                    error: function (error) {
+                        generateNotification('saveBenchmark', 'error');
+                    },
+                });
+
+            }
+        }
+    });
+</script>
+
+{% endblock%}

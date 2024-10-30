@@ -1,0 +1,307 @@
+{% extends 'layout/users.html' %}
+{% block title %}Admin | ARDS{% endblock %}
+{% block style %}
+<script src="{{ url_for('static', filename='node_modules/chart.js/dist/chart.umd.js') }}"></script>
+<link rel="stylesheet" href="{{url_for('static', filename='css/admin.css')}}">
+{% endblock %}
+
+{% block content %}
+
+<section>
+    <div class="page-header-title p-2 d-flex justify-content-between">
+        <h5 class="fw-bold fs-def">Dashboard</h5>
+        <div class="fw-medium p-2"><span class="fa-solid fa-calendar-day me-3"></span> <span id="dateCurrent"></span>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between gap-3" id="countContainer">
+        <div class="card p-2 flex-fill" id="archives_card">
+            <div class="fw-bold d-flex gap-3">
+                <span class="fa-solid fa-file-lines p-2"></span>
+                <span class="align-self-center">Archives</span>
+            </div>
+            <div class="p-2 d-flex gap-5">
+                <div class="fs-medium">Total Documents:
+                    <div class="d-flex gap-2">
+                        <h4 class="fw-bold" id="document_counts" style="width: 120px;">0</h4>
+                        <span class="fw-medium align-items-center" id="documents_status"></span>
+                    </div>
+                </div>
+                <div class="fs-medium">Students:
+                    <h4 class="fw-bold" id="student_counts">0</h4>
+                </div>
+            </div>
+        </div>
+        <div class="card p-2 flex-fill" id="storage_card">
+            <div class="fw-bold d-flex gap-3">
+                <span class="fa-solid fa-database p-2"></span>
+                <span class="align-self-center">Storage</span>
+            </div>
+            <div class="p-2 d-flex gap-5">
+                <div class="fs-medium">Database size:
+                    <h4 class="fw-bold" id="database_size">0 MB</h4>
+                </div>
+            </div>
+        </div>
+        <div class="card p-2 flex-fill" id="trash_card">
+            <div class="fw-bold d-flex gap-3">
+                <span class="fa-solid fa-trash-can p-2"></span>
+                <span class="align-self-center">Trash</span>
+            </div>
+            <div class="p-2 d-flex gap-5">
+                <div class="fs-medium">Trashed documents :
+                    <h4 class="fw-bold " id="trashed_counts">0</h4>
+                </div>
+                <div class="fs-medium">Total Trashed size :
+                    <h4 class="fw-bold" id="trashed_size">0 MB</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between gap-3 my-3" id="graphContainer">
+        <div class="w-full p-2 card flex-grow-1 p-2" id="progressReport">
+            <div class="d-flex justify-content-between p-2">
+                <h5 class="fw-bold">Overview</h5>
+                <div class="d-flex justify-content-end bg-light rounded-3 p-2">
+                    <div class="d-flex justify-content-between gap-2" style="max-width: 400px;"
+                        id="statsFilterContainer">
+                        <button type="button" class="btn-light fw-medium fs-medium px-4" id="filter_daily">Daily</button>
+                        <button type="button" class="btn-light fw-medium fs-medium px-4" id="filter_weekly">Weekly</button>
+                        <button type="button" class="btn-light fw-medium fs-medium px-4" id="filter_monthly">Monthly</button>
+                        <button type="button" class="btn-light fw-medium fs-medium px-4" id="filter_yearly">Yearly</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chartbox" style="height: 40vh;">
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</section>
+{% endblock%}
+{% block modals%}
+{% include '/partials/modals/account_modals.html' %}
+{% endblock%}
+{% block scripts %}
+<script>
+    var chart;
+    var currentData = [];
+
+    function compareData(newData) {
+        if (!currentData || currentData.length === 0) {
+            currentData = newData;
+            setup_chart(newData);
+        }
+        else {
+            if (currentData.length !== newData.length) {
+                currentData = newData;
+                setup_chart(newData);
+            } else {
+                for (let i = 0; i < currentData.length; i++) {
+                    if (currentData[i].label !== newData[i].label || currentData[i].count !== newData[i].count) {
+                        currentData = newData;
+                        setup_chart(newData);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    function setup_chart(data) {
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var gradientFill = ctx.createLinearGradient(0, 0, 0, 350);
+        gradientFill.addColorStop(0, 'rgba(41, 204, 14, 0.5)');
+        gradientFill.addColorStop(0.5, 'rgba(41, 204, 14, 0.25)');
+        gradientFill.addColorStop(1, 'rgba(41, 204, 14, 0)');
+
+        var maxCount = Math.max(...data.map(d => d.count));
+
+        var suggestedMax = maxCount < 15 ? maxCount + 5 : maxCount;
+        var stepSize = suggestedMax <= 15 ? 1 :
+            suggestedMax <= 30 ? 2 :
+                suggestedMax <= 75 ? 5 :
+                    suggestedMax <= 150 ? 10 :
+                        suggestedMax <= 750 ? 50 :
+                            suggestedMax <= 1500 ? 100 :
+                                cosuggestedMaxunt <= 3000 ? 200 : 500;
+
+        if (chart) {
+            chart.destroy();
+        }
+
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.label),
+                datasets: [{
+                    label: 'Archived Document',
+                    data: data.map(d => d.count),
+                    borderColor: '#24ac0c',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    backgroundColor: gradientFill,
+                    pointBackgroundColor: 'rgba(36, 172, 12, 1)',
+                    fill: true,
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        position: 'nearest',
+                    },
+                    legend: {
+                        display: false,
+                    },
+
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                onClick: function (e) {
+                    var activePoints = this.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                    if (activePoints.length > 0) {
+                        var firstPoint = activePoints[0];
+                        var label = this.data.labels[firstPoint.index];
+                        var value = this.data.datasets[firstPoint.datasetIndex].data[firstPoint.index];
+                    }
+                },
+                scales: {
+                    y: {
+                        suggestedMin: 0,
+                        suggestedMax: suggestedMax,
+
+                        grid: {
+                            display: true,
+                        },
+                        ticks: {
+                            stepSize: stepSize,
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false,
+                        },
+                    }
+                },
+            },
+        });
+    }
+
+    function updateDatabaseStatus(data) {
+
+        document.getElementById('document_counts').innerHTML = data.documents_count.toString().toUpperCase();
+        document.getElementById('student_counts').innerHTML = data.records_count.toString().toUpperCase();
+        document.getElementById('database_size').innerHTML = data.database_size.toString().toUpperCase();
+        document.getElementById('trashed_counts').innerHTML = data.trash_count.toString().toUpperCase();
+        document.getElementById('trashed_size').innerHTML = data.trash_size.toString().toUpperCase();
+        var icon;
+        
+        if (data.documents_status) {
+            if (data.documents_status > 0) {
+                icon = `<span class="fs-medium align-self-center fa-solid fa-up-long me-2"> </span> +`;
+                color = 'fc-green';
+            }
+            else {
+                icon = `<span class="fs-medium align-self-center fa-solid fa-down-long me-2"> </span>`;
+                color = 'text-danger';
+            }
+
+            document.getElementById('documents_status').innerHTML = icon + data.documents_status + '%';
+            document.getElementById('documents_status').classList.add(color);
+        }
+        else {
+            document.getElementById('documents_status').innerHTML = '';
+        }
+    }
+
+    function requestUpdate(optionFormat, starting_date) {
+        let option = optionFormat || 'daily';
+        let started_date = starting_date ? new Date(starting_date).toISOString().slice(0, 10) : '';
+
+        formData = {
+            'option': option,
+            'started_date': started_date,
+        };
+
+        $.ajax({
+            url: '/admin/dashboard/manage/data/fetch/statistics-results/filtered',
+            type: 'POST',
+            data: (formData),
+            dataType: 'json',
+            headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+            success: function (data) {
+                if (data) {
+                    updateDatabaseStatus(data.db_status);
+                    compareData(data.progress);
+                } else {
+                    console.error('No data returned');
+                }
+            },
+        });
+    }
+
+    function adjustButtonOpacity(clickedId) {
+        const container = document.querySelector('#statsFilterContainer');
+        const buttons = container.querySelectorAll('button');
+        buttons.forEach(button => {
+            if (button.id === clickedId) {
+                button.style.opacity = '1'; // 100% opacity for clicked button
+                button.classList.remove('fw-medium');
+                button.classList.add('fw-bold');
+            } else {
+                button.style.opacity = '0.5'; // 50% opacity for other buttons
+                button.classList.remove('fw-bold');
+                button.classList.add('fw-medium');
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        let selected_date = new Date().toISOString().slice(0, 10);
+
+        document.querySelector('#filter_daily').addEventListener('click', function () {
+            adjustButtonOpacity('filter_daily');
+            requestUpdate('daily', selected_date);
+        });
+        document.querySelector('#filter_weekly').addEventListener('click', function () {
+            adjustButtonOpacity('filter_weekly');
+            requestUpdate('weekly', selected_date);
+        });
+        document.querySelector('#filter_monthly').addEventListener('click', function () {
+            adjustButtonOpacity('filter_monthly');
+            requestUpdate('monthly', selected_date);
+        });
+        document.querySelector('#filter_yearly').addEventListener('click', function () {
+            adjustButtonOpacity('filter_yearly');
+            requestUpdate('yearly', selected_date);
+        });
+    });
+
+    function reload() {
+        var currentDate = new Date();
+
+        var thisMonth = currentDate.toLocaleString("default", { month: "long" });
+        var day = currentDate.getDate();
+        var year = currentDate.getFullYear();
+
+        document.getElementById('dateCurrent').innerHTML = thisMonth + ' ' + day + ', ' + year;
+
+        adjustButtonOpacity('filter_daily');
+        requestUpdate('daily', currentDate.toISOString().slice(0, 10));
+    }
+
+    reload();
+    setInterval(() => reload(), 300000);
+
+</script>
+{% endblock%}

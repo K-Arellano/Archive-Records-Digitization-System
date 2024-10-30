@@ -1,0 +1,606 @@
+{% extends 'layout/users.html' %}
+{% block title %} Users Manager | ARDS{% endblock %}
+{% block style %}
+<link rel="stylesheet" href="{{url_for('static', filename='css/admin.css')}}">
+{% endblock %}
+
+{% block content %}
+
+<section>
+    <div class="page-header-title p-2 mb-2">
+        <h5 class="fw-bold fs-def">User Manager</h5>
+    </div>
+    <div class="d-flex justify-content-end gap-3">
+        <div class="me-5" style="width: 30vw;min-width:400px;">
+            <input type="text" name="filterCards"
+                class="form-control w-full text-truncate rounded-3 mx-3 border-1 fs-medium" id="filterCards"
+                style="height: 100%;" oninput="searchCards()" placeholder="Search for Account...">
+        </div>
+
+        <div class="d-flex justify-content-between gap-3 p-0">
+            <div class="d-flex" style="max-width: 350px;">
+                <select class='form-select fs-medium rounded-3' id="changeDisplay-roles" style="width: 150px;">
+                    <option value="any"> All Users</option>
+                    <option value="staff"> Staff Accounts</option>
+                    <option value="admin"> Admin Accounts</option>
+                </select>
+            </div>
+            <div class="d-flex" style="max-width: 320px;">
+                <select class='form-select fs-medium rounded-3' id="changeDisplay-status" style="width: 130px;">
+                    <option value="all"> All Statuses </option>
+                    <option value="active"> Active</option>
+                    <option value="deactivated"> Deactivated</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn-red fs-medium fw-medium px-3" data-bs-toggle="modal" data-bs-target="#addUser_modal"> <span
+                class="fa-solid fa-user-plus me-2"> </span> User</button>
+    </div>
+
+    <div class="my-5 mx-auto" id="users_data" style="max-width: 800px;"></div>
+
+</section>
+{% endblock %}
+{% block modals%}
+{% include '/partials/modals/account_modals.html' %}
+{% include '/partials/modals/account_manager_modals.html' %}
+{% endblock%}
+{% block scripts %}
+<script src="{{url_for('static',filename='js/allertBuilder.js')}}"></script>
+<script>
+    // Function to show and hide popup
+    function populateUsers(toggle) {
+        fetch('/admin/user-manager/manage/data/fetch/users-list/filter-status/' + toggle)
+            .then(response => response.json())
+            .then(users => {
+                let usersDataDiv = document.getElementById('users_data');
+                usersDataDiv.innerHTML = '';
+                users.forEach(user => {
+                    var popup_id = Math.random();
+                    let statusClass = user.deleteStatus === 'deleted' ? 'text-danger' : (user.status === 'deactivated' ? 'fc-gray' : (user.online === 'online' ? 'fc-green' : 'text-warning'));
+                    let card = `<div class="users-entry card my-3 rounded-3 prevent-select mx-auto" ondblclick = "previewUser(${user.user_id})")>
+                                    <div class="px-3 py-2 card-body d-flex justify-content-between flex-nowrap">
+                                        <div class="me-4 account_info d-flex">
+                                            <div class="p-2 me-3 border border-2 rounded-4 d-flex justify-content-center align-items-center" style="width:50px;height: 50px;">
+                                                <h1 class="fs-large fa-solid fa-user-large w-full"></h1>
+                                            </div>
+                                            <span class="position-absolute" style="bottom:0.5rem; left:50px">
+                                                <i class="fa-solid fa-circle me-3 ${statusClass}" 
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="top"
+                                                    data-bs-trigger="hover"
+                                                    data-bs-html="true"
+                                                    title="${statusClass.includes('text-danger') ? 'Schedule deletion account' : (statusClass.includes('fc-green') ? 'Online' : (statusClass.includes('text-warning') ? 'Offline' : 'Deactivated'))}">
+                                                </i>
+                                            </span>
+                                            <div class="p-2">
+                                                <p class="fw-bold" id="account_name">${user.fullname}</p>
+                                                <p class="fst-italic fs-medium" id="account_username">@${user.username}</p>
+                                            </div>
+                                        </div>
+                                        <div class="online_status px-2 py-3">
+                                            <p class="fst-italic fs-medium">${user.last_online}</p>
+                                        </div>
+                                        <div class="status_manager p-2" id="status_manager">
+                                            <select class='border-0 px-4 py-2 rounded-3' value = "${user.status}" id="${user.user_id}">
+                                                <option value="active" ${user.status === 'active' ? 'selected' : ''}> Active </option>
+                                                <option value="deactivated" ${user.status === 'deactivated' ? 'selected' : ''}> Deactivated </option>
+                                            </select>
+                                        </div>
+                                        <div class="py-3" id="manage_user_button">
+
+                                            <a class ="p-3 fc-default text-decoration-none popup_button" onclick="showPopup(${popup_id})">
+                                                <span class="fa-solid fa-ellipsis-vertical"> </span>
+                                            </a>
+                                            <span class="position-absolute top-50 start-100 translate-middle ms-5 manage_user_button d-none " id="${popup_id}">
+                                                <div class = "vstack gap-2 col-md-5 mx-auto ms-5" style="width:120px;">
+                                                    <button class="button btn-gray fs-medium fw-medium px-4" onclick="previewUser(${user.user_id})">Preview</button>
+                                                    <button class="button btn-gray edit_buttonUser fs-medium fw-medium px-4" onclick="editProfile(${user.user_id})">Manage</button>
+                                                </div>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div> `;
+
+                    usersDataDiv.innerHTML += card;
+                });
+                //add an event listener to loop for each selection in chaning user status
+                let selects = document.querySelectorAll('.status_manager select');
+                selects.forEach(select => {
+                    select.addEventListener('change', event => {
+                        change_UserStatus(event.target.id, event.target.value);
+                    });
+                });
+            });
+    }
+    //change category to display list of cards
+    let changeDisplay_status = document.getElementById('changeDisplay-status');
+    let changeDisplay_roles = document.getElementById('changeDisplay-roles');
+    let changeDisplay_status_value = changeDisplay_status.value;
+    let changeDisplay_roles_value = changeDisplay_roles.value;
+    //add change event on user status selection
+    changeDisplay_status.addEventListener('change', event => {
+        changeDisplay_status_value = event.target.value;
+        populateUsers(changeDisplay_status_value + '-' + changeDisplay_roles_value);
+    });
+    //add change event on roles selection
+    changeDisplay_roles.addEventListener('change', event => {
+        changeDisplay_roles_value = event.target.value;
+        populateUsers(changeDisplay_status_value + '-' + changeDisplay_roles_value);
+    });
+
+    function showPopup(id) {
+        // Hide all popups
+        var popups = document.getElementsByClassName('manage_user_button');
+        for (var i = 0; i < popups.length; i++) {
+            popups[i].style.opacity = '0';
+            setTimeout(function () {
+                popups[i].classList.add('d-none');
+            }, 500); // Add d-none class after 0.5 second
+        }
+        // Show the clicked popup
+        var popup = document.getElementById(id);
+        popup.classList.remove('d-none');
+        popup.style.opacity = '1';
+        // Hide the popup after 5 seconds
+        var timeoutId = setTimeout(function () {
+            popup.style.opacity = '0';
+            setTimeout(function () {
+                popup.classList.add('d-none');
+            }, 300); // Add d-none class after 0.3 second
+        }, 500); // Start hiding after 0.5 seconds
+
+        // Cancel the hiding when the mouse is over the popup
+        popup.onmouseover = function () {
+            clearTimeout(timeoutId);
+        };
+        // Restart the hiding when the mouse leaves the popup
+        popup.onmouseout = function () {
+            timeoutId = setTimeout(function () {
+                popup.style.opacity = '0';
+                setTimeout(function () {
+                    popup.classList.add('d-none');
+                }, 300); // Add d-none class after 0.3 second
+            }, 500); // Start hiding after 0.5 seconds
+        };
+    }
+    //when load populate the cards
+    window.onload = (event) => {
+        populateUsers('all-any');
+    };
+    //every 10 min reload the populate of cards for real time updates
+    setInterval(() => populateUsers('all-any'), 300000);
+    //filtering function in displaying data
+    function searchCards() {
+        var input, filter, cards, cardContainer, account_name, account_username, i;
+
+        input = document.getElementById("filterCards");
+        filter = input.value.toUpperCase();
+
+        cardContainer = document.getElementById("users_data");
+        cards = cardContainer.getElementsByClassName("card");
+
+        for (i = 0; i < cards.length; i++) {
+            account_name = cards[i].querySelector("#account_name");
+            account_username = cards[i].querySelector("#account_username");
+
+            if (account_name.innerText.toUpperCase().indexOf(filter) > -1) {
+                cards[i].style.display = "";
+            } else {
+                cards[i].style.display = "none";
+            }
+        }
+    }
+    //preview user account function
+    function previewUser(profile_id) {
+        location.href = ('/admin/user-manager/manage/data/user/preview-profile/account-id/' + profile_id);
+    }
+</script>
+<script>
+    //clear forms input 
+    function clearForm(form_id) {
+        let form = document.querySelector(form_id);
+        let inputs = form.querySelectorAll('input');
+
+        for (let i = 0; i < inputs.length; i++) {
+            inputs[i].value = '';
+        }
+    }
+    //add user function
+    $('#signup_user').on('click', function (event) {
+        event.preventDefault();
+        //set data from the modal.html forms
+        let fullname = $('#newuser_fullname').val();
+        let username = $('#newuser_username').val();
+        let password = $('#newuser_password').val();
+        let repassword = $('#newuser_repassword').val();
+        //set the data
+        let formData = {
+            'newuser_fullname': fullname,
+            'newuser_username': username,
+            'newuser_password': password,
+            'newuser_repassword': repassword
+        };
+        //send the data through ajax and recieve a corresponding status report of query
+        $.ajax({
+            url: '/admin/user-manager/manage/data/new-user/data-credentials/register-account',
+            type: 'POST',
+            data: formData,
+            headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+            success: function (data) {
+                populateUsers('all-any');
+                generateNotification('addUser', data.register_querry);
+            },
+            //handle the ajax error 
+            error: function (error) {
+                console.error('Error:', error);
+                generateNotification('addUser', 'error');
+            }
+        });
+    });
+</script>
+
+<script>
+    function change_UserStatus(profile_id, state) {
+
+        let formData = {
+            'user_id': profile_id,
+            'user_state': state
+        }
+        var status = { 'active': 'activate', 'deactivated': 'deactivate' }[state];
+
+        let status_confirmation = document.querySelector('#Change_UserStatus_confirmation .modal-body');
+        status_confirmation.innerHTML = `<h5 class="fw-bold mb-3">Change Account Status</h5>
+                                  <p>Are you sure you want to <span>${status}</span> this account?</p>`;
+
+        $('#Change_UserStatus_confirmation').modal('show');
+        //if changes confirmed 
+        $('#update_user_status').on('click', function (event) {
+            event.preventDefault();
+            $.ajax({
+                url: '/admin/user-manager/manage/data/user/account-status/update',
+                type: 'POST',
+                data: formData,
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    populateUsers('all-any');
+                    switch (data.change_state) {
+                        case 'noChanges'://the user successfully appended in the database
+                            break;
+                        default:
+                            generateNotification('changeUserStatus', data.change_state);
+                            break;
+                    }
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                    generateNotification('changeUserStatus', 'error');
+                }
+            });
+        });
+    }
+
+    function editProfile(profile_id) {
+        // Load user information 
+        fetch('/admin/user-manager/manage/data/user/fetch/account-credentials/account-id/' + profile_id)
+            .then(response => response.json())
+            .then(user_credentials => {
+                if (user_credentials !== null) {
+                    let fullname = user_credentials.update_fullname;
+                    let username = user_credentials.update_username;
+                    let role = user_credentials.update_role;
+
+                    // Change innerHTML of modal inside modal body
+                    $('#edit_account_modal .modal-body').html(`
+                    <h5 class="fw-bold mb-3">Edit Profile Information </h5>
+                        <form action="{{ url_for('auth.edit_user')}}" method="post" id="edit_user" class="mb-3">
+                            <div class="inputs-forms mb-3">
+                                <div id="form-item" class="py-2">
+                                    <label class="fw-medium" for="update_fullname">Staff Name</label>
+                                    <input type="text" class="form-control" id="update_fullname" name="update_fullname" value="${fullname}" onchange="checkname('fullname', ${profile_id}, 'update_fullname')" placeholder="${fullname}" required>
+                                </div>
+                                <div class="d-flex justify-content-between gap-3 py-2">
+                                    <div id="form-item" class="flex-grow-1">
+                                        <label class="fw-medium" for="update_username">Username</label>
+                                        <input type="text" class="form-control" id="update_username" name="update_username" value="${username}" onchange="checkname('username', ${profile_id}, 'update_username')" maxlength="16" placeholder="${username}" required>
+                                    </div>
+                                    <div id="form-item" style="width:350px;">
+                                        <label class="fw-medium" for="update_role">Role</label>
+                                        <select class="form-select rounded-3 text-start text-truncate" name="update_role" id="update_role" required>
+                                            <option value="2" ${role === 2 ? 'selected' : ''}> Staff - Upload and Retrieve Archives</option>
+                                            <option value="1" ${role === 1 ? 'selected' : ''}> Admin - Manage Users and Database</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div id="form-item" class="py-2">
+                                    <label class="fw-medium" for="update_password">Password</label>
+                                    <input type="password" class="form-control" id="update_password" name="update_password" minlength="8" placeholder="********" maxlength="50" required>
+                                </div>
+                                <div id="form-item" class="py-2">
+                                    <label class="fw-medium" for="update_repassword">Confirm Password</label>
+                                    <input type="password" class="form-control" id="update_repassword" name="update_repassword" minlength="8" placeholder="********" maxlength="50" required>
+                                </div>
+                                <div id="update_user_passwordChecker" class="py-3 container px-0">
+                                    <div class="row">
+                                    <div class="col-7" >
+                                        <div class="progress my-2" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                                        aria-valuemax="100" style="height: 5px;">
+                                        <div class="progress-bar"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col text-end prevent-select" id="updateUser_strength_indicator"> No Password</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        <div class="d-flex justify-content-between">
+                            <button class="btn-red fs-medium fw-medium px-3"  onclick="show_deleteConfirmation('${profile_id}')"> Delete User </button>
+                            <div class="d-flex justify-content-end">
+                                <button class="fs-medium fw-medium px-4 me-3" type="button" data-bs-dismiss="modal">Close</button>
+                                <button class="btn-green fs-medium fw-medium px-4" data-bs-toggle="modal" data-bs-target="#UpdateCredentials_confirmation"
+                                type="button" id="button_showConfirmation_UpdateUser"> Update </button>
+                            </div>
+                        </div>
+                `);
+                    // Display the modal edit
+                    $('#edit_account_modal').modal('show');
+
+                    //password strenght function and password confirmation error
+                    let update_fullname = document.getElementById('update_fullname');
+                    let update_username = document.getElementById('update_username');
+                    let update_password = document.getElementById('update_password');
+                    let update_repassword = document.getElementById('update_repassword');
+                    let update_progressBar = document.querySelector('#update_user_passwordChecker .progress-bar');
+                    let update_strengthIndicator = document.getElementById('updateUser_strength_indicator');
+                    let update_submitButton = document.getElementById('button_showConfirmation_UpdateUser');
+
+                    // Define the width, color, and strength arrays
+                    let update_widthPower = ["1%", "25%", "50%", "75%", "100%"];
+                    let update_colorPower = ["#D73F40", "#DC6551", "#ff9f00", "#BDE952", "#29cc0e"];
+                    let update_strength = ["Too Short", "Weak", "Fair", "Good", "Strong"];
+
+                    // Add an input event listener to the password field
+                    update_password.oninput = function () {
+                        let update_point = 0;
+                        let update_value = update_password.value;
+
+                        // Check the password strength
+                        if (update_value.length >= 6) {
+                            let update_arrayTest = [/[0-9]/, /[a-z]/, /[A-Z]/, /[^0-9a-zA-Z]/];
+                            update_arrayTest.forEach((item) => {
+                                if (item.test(update_value)) {
+                                    update_point += 1;
+                                }
+                            });
+                        } else if (update_value.length > 0) {
+                            update_point = 0;
+                        }
+
+                        // Update the progress bar and strength indicator
+                        update_progressBar.style.width = update_widthPower[update_point];
+                        update_progressBar.style.backgroundColor = update_colorPower[update_point];
+                        update_progressBar.setAttribute('aria-valuenow', parseInt(update_widthPower[update_point]));
+                        update_strengthIndicator.textContent = update_strength[update_point];
+                        //disable submit button
+                        if (update_point < 4) { update_submitButton.disabled = true; } else { update_submitButton.disabled = false; }
+
+                        //confirmation password error 
+                        if (update_password.value === update_repassword.value) {
+                            update_password.classList.remove("is-invalid");
+                            update_repassword.classList.remove("is-invalid");
+                            update_submitButton.disabled = false;
+                        }
+                        else {
+                            update_password.classList.add("is-invalid");
+                            update_repassword.classList.add("is-invalid");
+                            update_submitButton.disabled = true;
+                        }
+                    }
+                    //confirmation password repassword
+                    update_repassword.oninput = function () {
+                        if (update_password.value === update_repassword.value) {
+                            update_password.classList.remove("is-invalid");
+                            update_repassword.classList.remove("is-invalid");
+                            update_submitButton.disabled = false;
+                        }
+                        else {
+                            update_password.classList.add("is-invalid");
+                            update_repassword.classList.add("is-invalid");
+                            update_submitButton.disabled = true;
+                        }
+                    }
+                }
+            });
+
+        $('#update_user_credentials').on('click', function (event) {
+            event.preventDefault();
+
+            var user_id = profile_id;
+            let update_fullname = $('#update_fullname').val();
+            let update_username = $('#update_username').val();
+            let update_role = $('#update_role').val();
+            let update_password = $('#update_password').val();
+            let update_repassword = $('#update_repassword').val();
+
+            //set the data
+            let formData = {
+                'update_user_id': user_id,
+                'update_fullname': update_fullname,
+                'update_username': update_username,
+                'update_role': update_role,
+                'update_password': update_password,
+                'update_repassword': update_repassword
+            };
+            //send the data through ajax and recieve a corresponding status report of query
+            if (update_fullname !== null && update_username !== null && user_id !== null) {
+                $.ajax({
+                    url: '/admin/user-manager/manage/data/user/update/account-credentials/new-data',
+                    type: 'POST',
+                    data: formData,
+                    headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                    success: function (data) {
+                        populateUsers('all-any');
+                        switch (data.update_query) {
+                            case 'noChanges'://the user successfully appended in the database
+                                break;
+                            default:
+                                generateNotification('updateUserCredentials', data.update_query);
+                                break;
+                        }
+                    },
+                    //handle the ajax error 
+                    error: function (error) {
+                        console.error('Error:', error);
+                        generateNotification('updateUserCredentials', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    function checkname(credential, profile_id, inputForm_identifier) {
+        let inputForm = document.getElementById(inputForm_identifier);
+        let searchString = $('#'.concat(inputForm_identifier)).val();
+
+        if (inputForm !== null) {
+            checkUnique(credential, profile_id, searchString, function (is_nameExist) {
+
+                if (is_nameExist === true) {
+                    inputForm.classList.add("is-invalid");
+                }
+                else {
+                    inputForm.classList.remove("is-invalid");
+                }
+            });
+        }
+    }
+
+    function checkUnique(credential, profile_id, dataSearch, callback) {
+        if (profile_id === null || profile_id === '') {
+            profile_id = 0;
+        }
+        else {
+            profile_id = parseInt(profile_id);
+        }
+        if ((credential === "fullname" || credential === "username") && dataSearch !== null) {
+            let formData = {
+                'credential': credential,
+                'profile_id': profile_id,
+                'dataSearch': dataSearch,
+            };
+            $.ajax({
+                url: '/admin/user-manager/manage/data/fetch/users-list/find-duplicates/verify-status/',
+                type: 'POST',
+                data: formData,
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    if (data.is_nameExist === 'true') {
+                        callback(true);
+                    }
+                    else {
+                        callback(false);
+                    }
+                }
+            });
+        }
+    }
+
+    function show_deleteConfirmation(profile_id) {
+        $('#edit_account_modal').modal('hide');
+        $('#delete_accountConfirmation').modal('show');
+
+        $('#delete_user_profile').on('click', function (event) {
+            event.preventDefault();
+            let user_data = profile_id;
+
+            const formData = {
+                user_data,
+            };
+
+            $.ajax({
+                url: '/admin/user-manager/manage/data/user/update/account-status/deactivate/delete',
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    populateUsers('all-any');
+                    generateNotification('removeUser', data.delete_query);
+                },
+                //handle the ajax error 
+                error: function (error) {
+                    console.error('Error:', error);
+                    generateNotification('removeUser', 'error');
+                }
+            });
+        });
+    }
+
+</script>
+
+<script>
+    //password strenght function and password confirmation error
+    let password = document.getElementById('newuser_password');
+    let repassword = document.getElementById('newuser_repassword');
+    let progressBar = document.querySelector('#addUser_password_strengthchecker .progress-bar');
+    let strengthIndicator = document.getElementById('addUser_strength_indicator');
+    let submitButton = document.getElementById('button_showConfirmationAddUser');
+
+    // Define the width, color, and strength arrays
+    let widthPower = ["1%", "25%", "50%", "75%", "100%"];
+    let colorPower = ["#D73F40", "#DC6551", "#ff9f00", "#BDE952", "#29cc0e"];
+    let strength = ["Too Short", "Weak", "Fair", "Good", "Strong"];
+
+    // Add an input event listener to the password field
+    password.oninput = function () {
+        let point = 0;
+        let value = password.value;
+
+        // Check the password strength
+        if (value.length >= 6) {
+            let arrayTest = [/[0-9]/, /[a-z]/, /[A-Z]/, /[^0-9a-zA-Z]/];
+            arrayTest.forEach((item) => {
+                if (item.test(value)) {
+                    point += 1;
+                }
+            });
+        } else if (value.length > 0) {
+            point = 0;
+        }
+
+        // Update the progress bar and strength indicator
+        progressBar.style.width = widthPower[point];
+        progressBar.style.backgroundColor = colorPower[point];
+        progressBar.setAttribute('aria-valuenow', parseInt(widthPower[point]));
+        strengthIndicator.textContent = strength[point];
+        //disable submit button
+        if (point < 4) { submitButton.disabled = true; } else { submitButton.disabled = false; }
+
+        //confirmation password error 
+        if (password.value === repassword.value) {
+            password.classList.remove("is-invalid");
+            repassword.classList.remove("is-invalid");
+            submitButton.disabled = false;
+        }
+        else {
+            password.classList.add("is-invalid");
+            repassword.classList.add("is-invalid");
+            submitButton.disabled = true;
+        }
+    }
+    //confirmation password repassword
+    repassword.oninput = function () {
+        if (password.value === repassword.value) {
+            password.classList.remove("is-invalid");
+            repassword.classList.remove("is-invalid");
+            submitButton.disabled = false;
+        }
+        else {
+            password.classList.add("is-invalid");
+            repassword.classList.add("is-invalid");
+            submitButton.disabled = true;
+        }
+    }
+</script>
+
+{% endblock %}

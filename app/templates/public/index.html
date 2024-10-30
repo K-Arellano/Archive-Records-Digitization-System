@@ -1,0 +1,89 @@
+{% extends 'layout/public.html' %}
+{% block title %}USeP - ARDS{% endblock %}
+{% block style %}
+<link rel="stylesheet" href="{{url_for('static',filename='css/public.css')}}" /> {% endblock %}
+
+{% block content %}
+<section class="my-4 container-fluid p-0 border-0" style="width: 100%;">
+    <div class="d-flex justify-content-between gap-2 border-0 p-0">
+        <div class="align-self-center text-center justify-content-center">
+            <img src="{{url_for('static', filename='images/login_cover.png')}}" class="" alt="ARDS"
+                style="object-fit:fill; max-height: 400px;">
+        </div>
+        <div class=" flex rounded-4 card" style="padding: 32px;;">
+            <div id="login_container">
+                <div class="form-title-container" style="margin-bottom: 24px;">
+                    <h2 class="fw-medium " id="form-title">Sign in as {% if role == 1 %}Admin{% elif
+                        role== 2 %}Staff{% else
+                        %}Staff{% endif %}!</h2>
+                    <h5 class="fw-thin">Please login to get started.</h5>
+                </div>
+                <form action="{{ url_for('auth.login')}}" method="POST" id="login_form">
+                    {{ form.csrf_token }}
+                    <div id="inputs-forms">
+                        <div class="form-item" style="margin: 24px 0px;">
+                            {{ form.username(class="w-full form-control" + (" is-invalid" if error_message else "")) }}
+                            <label for="username">Username</label>
+                        </div>
+                        <div class="form-item" style="margin: 24px 0px 10px 0px;">
+                            {{ form.password(class="w-full form-control" + (" is-invalid" if error_message else "")) }}
+                            <label for="password">Password</label>
+                        </div>
+                        {{ form.role(style="display: none;") }}
+                        <div class="form-item d-flex justify-content-between align-items-center"
+                            style="margin: 10px 0px;">
+                            <div class="border-1 {% if error_message %} is-invalid {% else %} {% endif%}" id="captcha-image">
+                                {{ captcha() }}
+                            </div>
+                            {{ form.captcha(class="w-full ms-2 form-control captcha " + (" is-invalid" if error_message
+                            else "")) }}
+                        </div>
+                        {% if error_message %}
+                        <div id="error_message" class="text-danger" style="margin-bottom: 10px;">
+                            {{ error_message }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+                    {{ form.submit(class="w-100 fw-bold btn-red", id="signin") }}
+                </form>
+
+                <div class="divider-login d-flex align-items-center" style="margin: 16px 0px;">
+                    <span class="fs-small text-center fw-bold mx-3 mb-0">OR</span>
+                </div>
+
+                <button id="switch_roles" class="w-100 fw-bold">Sign in as
+                    {% if role== 1 %}Staff
+                    {% elif role == 2 %}Admin
+                    {% else %}Admin{% endif %}
+                </button>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{url_for('static',filename='js/switch_account.js')}}"></script>
+<script>
+    const channel = new BroadcastChannel("sess_channel");
+    const userRole = "{{ current_user.role }}";
+    channel.onmessage = function (event) {
+        if (event.data === 'session online') {
+
+            if (userRole !== null || userRole !== "") {
+                if (userRole === 'admin') {
+                    window.location.href = "/dashboard";
+                }
+                else if (userRole === 'staff') {
+                    window.location.href = "/records";
+                }
+                else {
+                    history.back();
+                }
+            }
+        }
+    };
+</script>
+{% endblock %}

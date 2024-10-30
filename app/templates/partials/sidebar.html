@@ -1,0 +1,160 @@
+<aside id="side-navigation" class="sidebar" data-sidebar>
+    <div
+        class="header-sidebarborder-bottom border-bottom border-1 {% if current_user.role == 'staff' %} mb-3 {% else %} mb-2 {% endif %}">
+        <ul class="sidebar-list">
+            <li class="sidebar-list-item">
+                <div class="header-info align-items-center">
+                    <img class="sidebar-logo rounded-circle logo-medium" style="margin-top:2px;"
+                        src="{{url_for('static',filename='logo/our-logo.png')}}" alt="OUR Logo">
+                    <span class="hidden-sidebar fs-def fw-bold"> USeP- ARDS</span>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <div class="middle-sidebar">
+        {% if current_user.role == 'admin' %}
+        <ul class="sidebar-list mb-3">
+            <li class="sidebar-list-item">
+                <div class="sidebar-group-title align-items-center">
+                    <span class="sidebar-icon"></span>
+                    <span class="hidden-sidebar fs-medium fw-bold" style="margin-left: -15px;"> Statistics</span>
+                </div>
+            </li>
+
+            <li class="sidebar-list-item">
+                <a href="{{url_for('dashboard')}}"
+                    class="sidebar-link align-items-center {% if request.path == url_for('admin.dashboard') %} active {% endif %}" id="dashboardManager">
+                    <span class="sidebar-icon fa-solid fa-bars-progress"></span>
+                    <span class="hidden-sidebar fs-medium">Dashboard</span>
+                </a>
+            </li>
+
+            <li class="sidebar-list-item">
+                <a href="{{url_for('benchmarker')}}"
+                    class="sidebar-link align-items-center {% if request.path == url_for('admin.benchmarker') and current_user.role == 'admin' %} active {% endif %}" id="benchmarkManager">
+                    <span class="sidebar-icon fa-solid fa-cube"></span>
+                    <span class="hidden-sidebar fs-medium"> Tester</span>
+                </a>
+            </li>
+        </ul>
+        <ul class="sidebar-list mb-3">
+            <li class="sidebar-list-item">
+                <div class="sidebar-group-title align-items-center">
+                    <span class="sidebar-icon"></span>
+                    <span class="hidden-sidebar fs-medium fw-bold" style="margin-left: -15px;"> Manager tools </span>
+                </div>
+            </li>
+            <li class="sidebar-list-item">
+                <a href="{{url_for('account_manager')}}"
+                    class="sidebar-link align-items-center {% if request.path == url_for('admin.account_manager') %} active {% endif %}" id="accountManager">
+                    <span class="sidebar-icon fa-solid fa-user-group"></span>
+                    <span class="hidden-sidebar fs-medium"> User Manager </span>
+                </a>
+            </li>
+
+            <li class="sidebar-list-item">
+                <a href="{{url_for('col_course_manager')}}"
+                    class="sidebar-link align-items-center {% if request.path == url_for('admin.col_course_manager') %} active {% endif %}" id="collegeManager">
+                    <span class="sidebar-icon fa-solid fa-graduation-cap"></span>
+                    <span class="hidden-sidebar fs-medium"> College and Course </span>
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+
+        <ul class="sidebar-list mb-3">
+            {% if current_user.role == 'admin' %}
+            <li class="sidebar-list-item">
+                <div class="sidebar-group-title align-items-center">
+                    <span class="sidebar-icon"></span>
+                    <span class="hidden-sidebar fs-medium fw-bold" style="margin-left: -15px;"> Database </span>
+                </div>
+            </li>
+            {% endif %}
+            <li class="sidebar-list-item">
+                <a href="{{url_for('records')}}"
+                    class="sidebar-link align-items-center {% if request.path == url_for('staff.records') or request.path == url_for('admin.records') %} active {% endif %}" id="recordsManager">
+                    <span class="sidebar-icon fa-solid fa-user-tag"></span>
+                    <span class="hidden-sidebar fs-medium">Students Records</span>
+                </a>
+            </li>
+
+            <li class="sidebar-list-item">
+                <a href="{{url_for('documents')}}"
+                    class="sidebar-link align-items-center {% if request.path == url_for('staff.documents') or request.path == url_for('admin.documents') %} active {% endif %}" id="documentsManager">
+                    <span class="sidebar-icon fa-solid fa-box-archive"></span>
+                    <span class="hidden-sidebar fs-medium">Archive Documents</span>
+                </a>
+            </li>
+            {% if current_user.role == 'staff' %}
+            <li class="sidebar-list-item">
+                <a href="{{url_for('upload')}}"
+                    class="sidebar-link align-items-center {% if request.path == url_for('staff.upload') and current_user.role == 'staff' %} active {% endif %}" id="uploadManager">
+                    <span class="sidebar-icon fa-regular fa-square-plus"></span>
+                    <span class="hidden-sidebar fs-medium"> Upload</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if current_user.role == 'admin' %}
+            <li class="sidebar-list-item">
+                <a href="{{url_for('trashbin')}}"
+                    class="sidebar-link align-items-center {% if request.path == url_for('admin.trashbin') and current_user.role == 'admin' %} active {% endif %}" id="trashbinManager">
+                    <span class="sidebar-icon fa-regular fa-trash-can"></span>
+                    <span class="hidden-sidebar fs-medium"> Trash</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    <div class="bottom-sidebar border-top border-1">
+        <ul class="sidebar-list">
+            <li class="sidebar-list-item">
+                <a href="{{url_for('account')}}"
+                    class="sidebar-link align-items-center {% if request.path == url_for('staff.account', user = current_user.username) or request.path == url_for('admin.account', user = current_user.username) %} active {% endif %}" id="navProfile">
+                    <span
+                        class="sidebar-icon fa-solid {% if current_user.role == 'staff' %} fa-user {% elif current_user.role == 'admin' %}fa-solid fa-user-tie {% endif %}"></span>
+                    <span id="account_username" class="hidden-sidebar fs-medium">{{current_user.username}}</span>
+                </a>
+            </li>
+
+            <li class="sidebar-list-item">
+                <a href="" class="sidebar-link" data-bs-toggle="modal" data-bs-target="#logout_Confirmation">
+                    <span class="sidebar-icon fa-solid fa-arrow-right-from-bracket"></span>
+                    <span class="hidden-sidebar fs-medium"> Sign out</span>
+                </a>
+            </li>
+
+        </ul>
+    </div>
+</aside>
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const sidebar = document.getElementById("side-navigation");
+
+        sidebar.addEventListener("click", function (event) {
+            if (!isInsideSidebarListItem(event.target)) {
+                toggleSidebar();
+            } else {
+                const listItem = event.target.closest('.sidebar-list-item');
+                if (listItem && listItem.querySelector('.sidebar-group-title')) {
+                    // Toggle sidebar only if the clicked sidebar-list-item has a .sidebar-group-title child
+                    toggleSidebar();
+                }
+            }
+        });
+
+        function toggleSidebar() {
+            var icon = document.getElementById('toggle-icon');
+            sidebar.classList.toggle('open');
+        }
+
+        function isInsideSidebarListItem(element) {
+            return element.classList.contains('sidebar-list-item') || element.closest('.sidebar-list-item') !== null;
+        }
+    });
+
+
+</script>

@@ -1,0 +1,138 @@
+<div class="modal fade" id="deleteSelctedList_confirmation" data-bs-backdrop="static" data-bs-keyboard="false"
+    tabindex="-1" role="dialog" aria-labelledby="deleteSelctedList_confirmation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h5 class="fw-bold mb-3">Confirm Removal</h5>
+                <p class="ms-2"> Are you sure you want delete this rows?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-bs-dismiss="modal" class="button fs-medium fw-medium px-4">Cancel</button>
+                <button id="removeButton" class="btn-red button fs-medium fw-medium px-4" data-bs-dismiss="modal">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="clearSelctedList_confirmation" data-bs-backdrop="static" data-bs-keyboard="false"
+    tabindex="-1" role="dialog" aria-labelledby="clearSelctedList_confirmation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h5 class="fw-bold mb-3"> Clear Selected data </h5>
+                <p class="ms-2"> Are you sure you want to clear the input fields for the selected rows? This action will
+                    reset the input fields to empty.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-bs-dismiss="modal" class="button fs-medium fw-medium px-4">Cancel</button>
+                <button id="clearButton" class="btn-red button fs-medium fw-medium px-4" data-bs-dismiss="modal">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="selection_uploadTools" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="selection_uploadTools" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0" id="errorContainerTools">
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ocr_confirmation" data-bs-keyboard="false" tabindex="-1" role="dialog"
+    aria-labelledby="ocr_confirmation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h5 class="fw-bold mb-3">Scan the image</h5>
+                <p class="ms-2">Automatic extract student names from the table or manually crop the table?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="ocr_manual" class="button fs-medium fw-medium px-4 px-4 me-3"
+                    data-bs-toggle="modal" data-bs-target="#ManualScanImageModal">Manual</button>
+                <button type="button" id="ocr_auto" class="btn-red button fs-medium fw-medium px-4"
+                    data-bs-dismiss="modal">
+                    Auto
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ManualScanImageModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="ManualScanImageModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h5 class="fw-bold mb-3"> Manual Text Extraction </h5>
+                <div id='crop-image-container rounded-3' style="height: 400px;">
+                    <img id="crop_imageSrc" style="max-width: 100%; max-height: 100%;">
+                </div>
+                <div class="alert alert-light m-2 fs-small alert-message-instruct">
+                    <span class="fa-solid fa-circle-info me-2"></span>
+                    Drag to select the area of the image containing the text you want to extract.
+                    For best results, focus on the names or text areas you need to capture.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-bs-dismiss="modal"
+                    class="button fs-medium fw-medium px-4 me-3">Cancel</button>
+                <button id="crop_customOcr" class="btn-green button fs-medium fw-medium px-4">
+                    Extract Text
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="error_ocr" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" role="dialog"
+    aria-labelledby="error_ocr" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-orange border-3">
+            <div class="modal-body ">
+                <div class="">
+                    <h5 class="fw-bold mb-3">Table Detection Failed</h5>
+                    <p class="ms-2">No tables or names were detected in the scanned image. Please perform a manual scan
+                        instead.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-bs-dismiss="modal"
+                    class="button fs-medium fw-medium px-4 me-3">Close</button>
+                <button type="button" id="ocr_auto" class="btn-orange button fs-medium fw-medium px-4"
+                    data-bs-toggle="modal" data-bs-target="#ManualScanImageModal">
+                    Manual Scan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade backdrop-modal-present" id="scanningAnimation" data-bs-keyboard="false" data-bs-backdrop="static"
+    tabindex="-1" role="dialog" aria-labelledby="scanningAnimation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-transparent border-0" style="box-shadow: none !important;">
+            <div class="modal-body border-0 bg-transparent" style="height: 30vh;">
+                <div class="scannerLoading">
+                    <div class="scanningAnimation">
+                        <div class="dot-animation bg-danger"></div>
+                        <div class="dot-animation bg-warning"></div>
+                        <div class="dot-animation bg-def-green"></div>
+                    </div>
+                </div>
+                <div class="my-5"></div>
+                <div class="text-center" id="loadingText">
+                    <h5 class="text-light fw-bold my-2"> Scanning...</h5>
+                    <button id="abortAutoScan" class="btn-transparent fs-medium fw-medium px-4" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

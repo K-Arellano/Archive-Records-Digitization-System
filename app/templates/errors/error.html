@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title> {{ error_number }} | ARDS </title>
+    <link rel="icon" type="image/x-icon" href="{{url_for('static',filename='logo/usep-logo.png')}}">
+    <link rel="stylesheet" href="{{url_for('static',filename='node_modules/bootstrap/dist/css/bootstrap.min.css')}}" />
+    <link rel="stylesheet"
+        href="{{url_for('static',filename='node_modules/@fortawesome/fontawesome-free/css/all.min.css')}}" />
+    <script src="{{url_for('static',filename='node_modules/bootstrap/dist/js/bootstrap.min.js')}}"></script>
+    <script src="{{url_for('static',filename='node_modules/@fortawesome/fontawesome-free/js/all.min.js')}}"></script>
+    <script src="{{url_for('static',filename='js/jquery.min.js')}}"></script>
+    <link rel="stylesheet" href="{{url_for('static',filename='css/main.css')}}" />
+</head>
+
+<body>
+    {% if not current_user or (current_user and not current_user.is_authenticated and not current_user.is_active) %}
+    {% include '/partials/header.html' %}
+    {% endif %}
+
+    <div class="position-absolute top-50 start-50 translate-middle">
+        <div class="text-center" style="align-items: center">
+            <div class="m-5" id="error_page_message">
+                <h1 class="fw-bold fc-red" style="font-size: 80px;"> {{ error_number }} </h1>
+                <p class="d-block m-auto" style="width: 500px;"> {{ error_message }} </p>
+            </div>
+            <a href=" {% if current_user and current_user.role == 'staff' %} {{url_for('records')}} {% elif current_user and current_user.role == 'admin' %} {{url_for('dashboard')}} {% else %} {{url_for('index')}} {% endif %}"
+                class="button btn-red text-decoration-none px-4 py-2 fw-bold"> Go Back to
+                {% if current_user.role== 'staff' %} Records
+                {% elif current_user.role == 'admin' %} Dashbord
+                {% else %} Home page {% endif %}
+            </a>
+        </div>
+    </div>
+    <script>
+        var timeoutUrl = '/authenticate-user/check-token/timeout/';
+        const channel = new BroadcastChannel("sess_channel");
+
+        channel.onmessage = function (event) {
+            if (event.data === 'session online'){
+                window.location.reload();
+            }   
+            else if (event.data === 'session timeout') {
+                console.log(event.data);
+                window.location.href = timeoutUrl;
+                channel.close()
+            }
+        }
+    </script>
+</body>
+
+</html>

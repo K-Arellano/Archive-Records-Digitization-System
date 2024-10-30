@@ -1,0 +1,485 @@
+{% extends 'layout/users.html' %}
+{% block title %}Documents | ARDS{% endblock %}
+{% block style %}
+<link href="{{url_for('static',filename='DataTables/datatables.min.css')}}" rel='stylesheet'>
+<script src="{{url_for('static',filename='DataTables/datatables.min.js')}}"></script>
+<link rel="stylesheet" href="{{url_for('static', filename='css/table.css')}}">
+{% endblock %}
+
+{% block content %}
+
+<section>
+    <div class="page-header-title p-2 mb-2">
+        <h5 class="fw-bold">Archive Documents</h5>
+    </div>
+    <div class="d-flex justify-content-between gap-5 mb-3 mx-2">
+        <div class="flex-grow-1" id="filtersearch_global" style="max-width: 40%;">
+            <input type="text" class="form-control w-full text-truncate fs-medium" id="filterSearch"
+                placeholder="Search...">
+        </div>
+        <div class="d-flex justify-content-end gap-4 fs-medium p-0" id="filterContainer">
+            <div class="d-flex justify-content-between gap-2 p-0">
+                <div class="d-flex" style="width: 100px;">
+                    <select id="filterCollege" class="form-select text-truncate fs-medium">
+                        <option value="">College</option>
+                    </select>
+                </div>
+                <div class="d-flex" style="width: 100px;">
+                    <select id="filterCourse" class="form-select text-truncate fs-medium">
+                        <option value="">Course</option>
+                    </select>
+                </div>
+                <div class="d-flex" style="width: 110px;">
+                    <select id="filterSemester" class="form-select fs-medium">
+                        <option value="">Semester</option>
+                        <option value="1st">1st Sem</option>
+                        <option value="2nd">2nd Sem</option>
+                        <option value="Off-Sem">Off-Sem</option>
+                    </select>
+                </div>
+                <div class="d-flex" style="width: 120px;">
+                    <select id="filterYear" class="form-select fs-medium" style="width: 120px;">
+                    </select>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end fs-medium p-0">
+                <div class="d-flex" style="width: 120px;">
+                    <span class="fw-medium p-2">Show</span>
+                    <select id="filterShow" name="filterShow" class="form-select fs-medium">
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="-1">All</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table id='documentsTable' class='display dataTable table-borderless table-hover fc-default fs-medium'
+        cellspacing="0" width="100%">
+    </table>
+
+</section>
+
+{% endblock%}
+{% block modals%}
+{% include '/partials/modals/account_modals.html' %}
+{% include '/partials/modals/documents_modals.html'%}
+{% endblock%}
+{% block scripts %}
+<script src="{{url_for('static',filename='js/allertBuilder.js')}}"></script>
+<script src="{{url_for('static',filename='js/document_name.js')}}"></script>
+<script src="{{url_for('static',filename='js/setup_Filter.js')}}"></script>
+<script>
+    var documentsDataTable;
+    var visLog = false;
+
+    if ('{{ current_user.role }}' === 'admin') {
+        visLog = true
+    }
+
+    function dataTableFunction() {
+        documentsDataTable = $('#documentsTable').DataTable({
+            stripeClasses: [],
+            language: {
+                paginate: {
+                    previous: '<a class="fa-solid fa-caret-left"></a>',
+                    next: '<a class="fa-solid fa-caret-right"></a>',
+                },
+                'emptyTable': 'No documents found. Please check back or refresh the page.'
+            },
+            scrollY: '60vh',
+            scrollX: true,
+            scrollCollapse: true,
+            'processing': true,
+            'responsive': true,
+            'serverSide': true,
+            'serverMethod': 'post',
+            'ajax': {
+                'url': '/documents/manage/data/fetch/',
+                'headers': { 'X-CSRFToken': '{{ csrf_token() }}' },
+                'data': function (data) {
+                    data.filterSearch = $('#filterSearch').val();
+                    data.filterCollege = $('#filterCollege').val();
+                    data.filterCourse = $('#filterCourse').val();
+                    data.filterSemester = $('#filterSemester').val();
+                    data.filterYear = $('#filterYear').val();
+                },
+                'dataSrc': function (json) {
+                    if (!json.aaData) {
+                        return [];
+                    } else {
+                        return json.aaData;
+                    }
+                },
+                'error': function (xhr, error, thrown) {
+                    // Custom error handling
+                    const errorMessage = `An error occurred while loading the data. Please try again later.`;
+                    const errStatus = `AJAX error: ${xhr.status} ${xhr.statusText}.`;
+                    alert(errorMessage);
+                    console.error(errStatus, error, thrown); // Log error for debugging
+                }
+            },
+            'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, "All"]],
+            'deferRender': true,
+            'scroller': true,
+            'columns': [
+                { data: 'id', orderable: true, title: '#', width: '30px' },
+                { data: 'Filename', title: 'File', orderable: true, wrap: false, className: 'text-start', width: '500px' },
+                { data: 'studentCount', title: 'Students', orderable: true, wrap: false, className: 'text-center', width: '40px' },
+                { data: 'College', title: 'College', orderable: true, wrap: false, className: '', width: '70px' },
+                { data: 'Section', title: 'Course', orderable: true, wrap: false, className: '', width: '100px' },
+                { data: 'Subject', title: 'Subject', orderable: false, wrap: true, width: '200px', },
+                { data: 'Semester', title: 'Sem', orderable: false, wrap: false, className: 'text-center', width: '50px' },
+                { data: 'SchoolYear', title: 'Year', orderable: true, wrap: true, className: 'text-center', width: '100px' },
+                {
+                    data: 'Uploader',
+                    title: 'Uploader',
+                    orderable: false,
+                    wrap: false,
+                    className: 'text-start',
+                    visible: visLog,
+                    width: '100px',
+                    "render": function (data, type, row) {
+                        const Uploader = '<span>' + data + '</span>'
+                        const htmlUploader = `<div class="ms-2 fw-medium d-flex align-items-center gap-2" ><span class="fa-solid fa-circle-user fs-def"></span>` + Uploader + `</div>`;
+                        return data ? htmlUploader : null;
+                    }
+                },
+                {
+                    'data': 'id',
+                    title: 'Action',
+                    orderable: false,
+                    wrap: true,
+                    width: '50px',
+                    "render": function (data, type, row) {
+                        const editFile = `<a id="editThis" class="flex-fill text-center" onclick="editDocument(` + row['id'] + `)"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-trigger="hover"
+                                                    data-bs-html="true"
+                                                    title="Edit">
+                                                <span class="fa-solid fa-pen"></span>
+                                            </a>`;
+                        const deleteFile = `<a id="deleteThis" class="flex-fill text-center" onclick="deleteDocument(` + row['id'] + `)"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-trigger="hover"
+                                                    data-bs-html="true"
+                                                    title="Delete">
+                                                <span class="fa-solid fa-trash text-danger"></span>
+                                            </a>`;
+
+                        return `<div class="d-flex fs-small align-items-center">` + editFile + ' ' + deleteFile + `</div>`;
+                    }
+                }
+            ],
+            "drawCallback": function (settings) {
+                var api = this.api();
+                var rows = api.rows({ page: 'current' }).count();
+                if (rows <= 1) { // Adjust this value based on your needs
+                    // Hide pagination controls
+                    $(api.table().container()).find('.dataTables_paginate').hide();
+                } else {
+                    // Show pagination controls
+                    $(api.table().container()).find('.dataTables_paginate').show();
+                }
+            }
+        });
+
+        $('#documentsTable tbody').on('dblclick', 'tr', function () {
+            var data = documentsDataTable.row(this).data();
+            preview(data.image_id);
+        });
+
+        $('#filterSearch').keyup(function () {
+            documentsDataTable.draw();
+        });
+
+        $('#filterCollege').change(function () {
+            documentsDataTable.draw();
+        });
+        $('#filterCourse').change(function () {
+            documentsDataTable.draw();
+        });
+        $('#filterSemester').change(function () {
+            documentsDataTable.draw();
+        });
+        $('#filterYear').change(function () {
+            documentsDataTable.draw();
+        });
+    }
+
+    $('#filterShow').change(function () {
+        var value = $(this).val();  // Get the selected value
+        // Change the select value of #recordsTable_length
+        $('#documentsTable_length select').val(value).change();
+        if (value == -1) {  // If "All" is <selected></selected>
+            $('.dataTables_wrapper .dataTables_paginate').addClass('d-none');  // Hide the pagination
+        } else {
+            $('.dataTables_wrapper .dataTables_paginate').removeClass('d-none');  // Show the pagination
+        }
+    });
+
+    setTimeout(dataTableFunction(), 1000);
+</script>
+<script>
+    //preview
+    function preview(ImageID) {
+        fetch('/documents/manage/data/file/fetch_data/' + ImageID)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(encodedImage => {
+                let previewImageDisplay = document.getElementById('previewImageDisplay');
+                previewImageDisplay.src = 'data:image/jpeg;base64,' + encodedImage;
+
+                // Show the modal
+                let modal = new bootstrap.Modal(document.getElementById('showPreviewModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+    }
+
+    // Clear the image source when the modal is hidden
+    $('#showPreviewDocumentModal').on('hidden.bs.modal', function (e) {
+        document.getElementById('previewImageDisplay').src = '';
+    })
+
+    //edit
+    function editDocument(documentEntryId) {
+
+        fetch('/documents/manage/data/document_header/request/data/' + documentEntryId)
+            .then(response => response.json())
+            .then(documentsData => {
+
+                let filename = documentsData.filename;
+                let document_college = documentsData.college;
+                let document_course = documentsData.course;
+                let year_level = documentsData.year_level;
+                let section = documentsData.section;
+                let subject = documentsData.subject;
+                let unit = documentsData.unit;
+                let semester = documentsData.semester;
+                let academic_year = documentsData.academic_year;
+                let pageNumber = documentsData.page_number;
+
+                function extractYears(year) {
+                    if (!year || year.trim() === "") {
+                        return {
+                            starting_year: "",
+                            ending_year: "",
+                        };
+                    }
+
+                    const yearArray = year.split("-");
+                    const starting_year = yearArray[0];
+                    const ending_year = yearArray[1];
+                    return {
+                        starting_year,
+                        ending_year,
+                    };
+                }
+
+                const school_year = extractYears(academic_year);
+
+                let html = `
+                    <div class="d-flex gap-3 py-2">
+                        <div id="form-item" class="flex-fill">
+                            <label class="fw-medium" for="update_documentfilename">Filename</label>
+                            <input type="text" class="form-control" id="update_documentfilename" name="update_documentfilename" placeholder="${filename}" value="${filename}" disabled required>
+                        </div>
+                        <div id="form-item" style="width: 80px;">
+                            <label class="fw-medium" for="update_document_page">Page #</label>
+                            <select class="form-select rounded-3" name="update_document_page" id="update_document_page"  value="${pageNumber}" required>
+                                <option value="1" ${pageNumber === 1 ? 'selected' : ''}>1</option>
+                                <option value="2" ${pageNumber === 2 ? 'selected' : ''}>2</option>
+                                <option value="3" ${pageNumber === 3 ? 'selected' : ''}>3</option>
+                                <option value="4" ${pageNumber === 4 ? 'selected' : ''}>4</option>
+                                <option value="5" ${pageNumber === 5 ? 'selected' : ''}>5</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 py-2">
+                        <div id="form-item" class="flex-fill">
+                            <label class="fw-medium" for="update_documentSubject">Subject</label>
+                            <input type="text" class="form-control" id="update_documentSubject" name="update_documentSubject" placeholder="${subject}" value="${subject}" required>
+                        </div>
+                        <div id="form-item" style="width:130px;">
+                            <label class="fw-medium" for="update_documentUnit">Unit</label>
+                            <select class="form-select rounded-3 text-truncate" id="update_documentUnit" name="update_documentUnit" value="${unit}" required>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div id="form-item" class="flex-fill py-2 w-50" >
+                            <label class="fw-medium" for="update_documentCollege">College</label>
+                            <select class="form-select pe-5 text-truncate" id="update_documentCollege" name="update_documentCollege" value="${document_college}" required>
+                            </select>
+                        </div>
+                        <div id="form-item" class="flex-fill py-2 w-50">
+                            <label class="fw-medium" for="update_documentCourse">Course</label>
+                            <select class="form-select pe-5 text-truncate" id="update_documentCourse" name="update_documentCourse" value="${document_course}" required>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-4 py-2">
+                        <div id="form-item" style="width:120px;">
+                            <label class="fw-medium" for="update_documentYear_level">Year level</label>
+                            <select class="form-select rounded-3 text-truncate" id="update_documentYear_level" name="update_documentYear_level" value="${year_level}" required>
+                            </select>
+                        </div>
+                        <div id="form-item" style="width:90px;">
+                            <label class="fw-medium" for="update_documentSection">Section</label>
+                            <input type="text" class="form-control text-center" id="update_documentSection" name="update_documentSection" placeholder="${section}" value="${section}" maxlength="2" required>
+                        </div>
+                        <div id="form-item" style="width:120px">
+                            <label class="fw-medium" for="update_documentSemester">Semester</label>
+                            <select class="form-select rounded-3 text-truncate" id="update_documentSemester" name="update_documentSemester" value="${semester}" required>
+                                <option value="0" ${semester === 0 ? 'selected' : ''}> </option>
+                                <option value="1" ${semester === 1 ? 'selected' : ''}> 1st Sem </option>
+                                <option value="2" ${semester === 2 ? 'selected' : ''}> 2nd Sem</option>
+                                <option value="3" ${semester === 3 ? 'selected' : ''}> Off-Sem </option>
+                            </select>
+                        </div>
+                        <div id="form-item" style="max-width: 170px;">
+                            <label class="fw-bold ps-2" for="documnt_academicYear">Academic Year</label>
+                            <span class="d-flex align-items-center">
+                                <input type="number" class="form-control text-center" id="starting_year"
+                                        name="starting_year" placeholder="${school_year.starting_year === "" ? 'YYYY' : school_year.starting_year}" value="${school_year.starting_year}" min="1978" max="9999" required>
+                                <span class="mx-2 fa-solid fa-minus fs-medium"
+                                        style="padding: 9.1px 0px;max-width: 1rem;"></span>
+                                <input type="number" class="form-control text-center" id="ending_year"
+                                        name="ending_year" placeholder="${school_year.ending_year === "" ? 'YYYY' : school_year.ending_year}" value="${school_year.ending_year}" min="1978" max="9999" required>
+                            </span>
+                        </div>
+                    </div>
+                `;
+
+
+                // Set the HTML of the parent element
+                document.getElementById('updateDocument_data').innerHTML = html;
+                updateHeader(documentsData)
+
+                //doument file name formatter function
+                $("#update_documentCollege, #update_documentCourse, #update_documentYear_level, #update_documentUnit, #update_documentSemester, #update_document_page").change(function () {
+                    updateObjectEdit('#update_documentCollege', '#update_documentCourse', '#update_documentYear_level', '#update_documentSection', '#update_documentSubject', '#update_documentUnit', '#update_documentSemester', '#starting_year', '#ending_year', '#update_document_page');
+                    updateDocumentName('#update_documentfilename');
+                });
+                $("#update_documentSubject, #update_documentSection, #starting_year, #ending_year").on('input', function () {
+                    updateObjectEdit('#update_documentCollege', '#update_documentCourse', '#update_documentYear_level', '#update_documentSection', '#update_documentSubject', '#update_documentUnit', '#update_documentSemester', '#starting_year', '#ending_year', '#update_document_page');
+                    updateDocumentName('#update_documentfilename');
+                });
+
+                const customStartingYearInput = document.getElementById('starting_year');
+                const customEndingYearInput = document.getElementById('ending_year');
+                // Event listener for starting year input
+                customStartingYearInput.addEventListener('input', function () {
+                    updateYearStart(customStartingYearInput, customEndingYearInput);
+                });
+                // Event listener for ending year input
+                customEndingYearInput.addEventListener('input', function () {
+                    updateYearEnd(customStartingYearInput, customEndingYearInput);
+                });
+            });
+
+        let modal = new bootstrap.Modal(document.getElementById('UpdateDocumentModal'));
+        modal.show();
+
+
+        $('#update_document_information').on('click', function (event) {
+            event.preventDefault();
+
+            var document_id = documentEntryId;
+            let update_filename = $('#update_documentfilename').val();
+            let update_college = $('#update_documentCollege').val();
+            let update_course = $('#update_documentCourse').val();
+            let update_year_level = $('#update_documentYear_level').val();
+            let update_section = $('#update_documentSection').val();
+            let update_semester = $('#update_documentSemester').val();
+            let update_subject = $('#update_documentSubject').val();
+            let update_unit = $('#update_documentUnit').val();
+
+            let update_starting_year = $('#starting_year').val();
+            let update_ending_year = $('#ending_year').val();
+            let update_academicYear = update_starting_year && update_ending_year ? update_starting_year + '-' + update_ending_year : '';
+
+            let update_document_page = $('#update_document_page').val();
+            //set the data
+            let formData = {
+                'document_id': document_id,
+                'update_filename': update_filename,
+                'update_college': update_college,
+                'update_course': update_course,
+                'update_year_level': update_year_level,
+                'update_section': update_section,
+                'update_semester': update_semester,
+                'update_subject': update_subject,
+                'update_unit': update_unit,
+                'update_academicYear': update_academicYear,
+                'update_document_page': update_document_page
+            };
+
+            $.ajax({
+                url: '/documents/manage/data/document_header/update',
+                type: 'POST',
+                data: formData,
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    documentsDataTable.draw();
+                    switch (data.query_result) {
+                        case 'duplicate':
+                            let modal = new bootstrap.Modal(document.getElementById('update_DuplicateError'));
+                            modal.show();
+                            break;
+                        case 'noChanges':
+                            break;
+                        default:
+                            generateNotification('updateDocument', data.update_query);
+                            break;
+                    }
+                },
+                //handle the ajax error 
+                error: function (error) {
+                    console.error('Error:', error);
+                    generateNotification('updateDocument', 'error');
+                }
+            });
+        });
+    }
+
+    //delete
+    function deleteDocument(documentEntryID) {
+
+        let modal = new bootstrap.Modal(document.getElementById('DeleteDocument_confirmation'));
+        modal.show();
+
+        $('#delete_document_information').on('click', function (event) {
+            event.preventDefault();
+
+            var document_id = documentEntryID; // Ensure that this variable is declared with let or const
+            let formData = { 'document_id': document_id };
+
+            $.ajax({
+                url: '/documents/manage/data/file/delete',
+                type: 'POST',
+                data: (formData),
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    documentsDataTable.draw();
+                    generateNotification('deleteDocument', data.delete_query);
+                },
+                //handle the ajax error 
+                error: function (error) {
+                    console.error('Error:', error);
+                    generateNotification('deleteDocument', 'error');
+                }
+            });
+        });
+    }
+</script>
+{% endblock%}

@@ -1,0 +1,297 @@
+<div class="modal fade" id="addColleges_modal" tabindex="-1" role="dialog" aria-labelledby="addColleges_modal"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:600px;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h5 class="fw-bold mb-3">Add a College</h5>
+                <form action="{{ url_for('college_manager.create_college')}}" method="post" id="new_college"
+                    class="mb-3">
+                    <div class="d-flex gap-3">
+                        <div id="form-item" style="width: 120px;">
+                            <label class="fw-medium" for="newcollege_name">Abbrevation.</label>
+                            <input type="text" class="form-control" id="newcollege_name" name="newcollege_name"
+                                placeholder="e.g CIC" required>
+                        </div>
+                        <div id="form-item" class="flex-fill">
+                            <label class="fw-medium" for="newcourse_name">Course</label>
+                            <input type="text" class="form-control text-truncate flex-fill"
+                                id="newcollege_nameDescription" name="newcollege_nameDescription"
+                                placeholder="e.g College of Information and Computing" required>
+                        </div>
+                    </div>
+                </form>
+                <div class="d-flex justify-content-end">
+                    <button class="me-3 fs-medium fw-medium px-4" type="button" data-bs-dismiss="modal">Close</button>
+                    <button class="btn-red fs-medium fw-medium px-4" data-bs-toggle="modal"
+                        data-bs-target="#addColleges_confirmation" type="button" id="button_showConfirmationAddColleges" onclick="dynamicAppendCollege()"
+                        disabled>
+                        Submit </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addCourses_modal" tabindex="-1" role="dialog" aria-labelledby="addCourses_modal"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:600px;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h5 class="fw-bold mb-3">Add a Course</h5>
+                <form action="{{ url_for('college_manager.create_courses')}}" method="post" id="new_courses"
+                    class="mb-3">
+                    <div class="inputs-forms">
+                        <div id="form-item" class="py-2">
+                            <label class="fw-medium" for="addon_College">College</label>
+                            <select class="form-select rounded-3" name="addon_College" id="addon_College" required>
+                            </select>
+                        </div>
+                        <div class="d-flex gap-3 py-3">
+                            <div id="form-item" style="width: 120px;">
+                                <label class="fw-medium" for="newcourse_name">Abbrevation.</label>
+                                <input type="text" class="form-control" id="newcourse_name" name="newcourse_name"
+                                    placeholder="e.g BSIT" required>
+                            </div>
+                            <div id="form-item" class="flex-fill">
+                                <label class="fw-medium" for="newcourse_name">Course</label>
+                                <input type="text" class="form-control text-truncate flex-fill"
+                                    id="newcourse_nameDescription" name="newcourse_nameDescription"
+                                    placeholder="e.g Bachelor of Science in Information Security" required>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="d-flex justify-content-end">
+                    <button class="me-3 fs-medium fw-medium px-4" type="button" data-bs-dismiss="modal">Close</button>
+                    <button class="btn-red fs-medium fw-medium px-4" data-bs-toggle="modal"
+                        data-bs-target="#addCourses_confirmation" type="button" id="button_showConfirmationAddCourses"
+                        disabled>
+                        Submit </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editCollege_modal" tabindex="-1" role="dialog" aria-labelledby="editCollege_modal"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:700px;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h5 class="fw-bold mb-3">Manage College</h5>
+                <form action="{{ url_for('college_manager.update_college')}}" method="post" id="edit_college"
+                    class="mb-3">
+                    <div class="inputs-forms">
+                        <div id="form-item" class="py-2">
+                            <label class="fw-medium" for="update_college">College</label>
+                            <div class="d-flex gap-3">
+                                <input type="text" class="form-control update_collegeField" name="update_college"
+                                    style="width: 100px;" required>
+                                <input type="text" class="form-control update_collegeDescriptionField flex-fill"
+                                    name="update_collegeDescription" required>
+                                <span class="p-2" style="max-width:50px;">
+                                    <a class="m-0 deleteCollege-button" id="" data-bs-toggle="modal"
+                                        data-bs-target="#deleteCollegeModal" data-toggle="tooltip" data-placement="top"
+                                        title="Delete College">
+                                        <span class="fa-solid fa-trash" data-bs-placement="top" data-bs-trigger="hover"
+                                            data-bs-html="true" title="Delete College">
+                                        </span>
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+                        <div id="populate_coursesList"></div>
+                    </div>
+                </form>
+                <div class="d-flex justify-content-end">
+                    <button class="me-3 fs-medium fw-medium px-4" type="button" data-bs-dismiss="modal">Close</button>
+                    <button class="btn-red fs-medium fw-medium px-4" data-bs-toggle="modal"
+                        data-bs-target="#editCollege_confirmation" type="button"
+                        id="button_showConfirmation_editCollege">
+                        Update </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="moveCourses_modal" tabindex="-1" role="dialog" aria-labelledby="moveCourses_modal"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="min-width: 55vw; width: auto;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h5 class="fw-bold mb-3">Move course entry</h5>
+                <form action="{{ url_for('college_manager.change_courseCollege')}}" method="post" id="move_course">
+                    <div class="inputs-forms d-flex gap-2">
+                        <div id="form-item" class="py-2 w-full flex-fill" style="width: 45%;">
+                            <label class="fw-medium" for="moveCourse_target">Course</label>
+                            <input type="text" class="form-control pe-4 moveCourse_target text-truncate "
+                                name="moveCourse_target" id="moveCourse_target" value="${course_name}" disabled>
+                        </div>
+                        <div id="form-item" class="p-2">
+                            <label class="fw-medium" for="spacing" style="visibility: hidden;">Course</label>
+                            <div class="text-center p-2">
+                                <div class="align-self-center fa-medium fa-solid fa-angles-right"></div>
+                            </div>
+                        </div>
+                        <div id="form-item" class="py-2 flex-fill" style="width: 45%;">
+                            <label class="fw-medium" for="movetoCollege">College</label>
+                            <select class="form-select pe-5 text-truncate" name="movetoCollege" id="movetoCollege"
+                                required>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+                <div class="alert alert-light m-2 fs-small alert-message-instruct mb-3">
+                    <span class="fa-solid fa-circle-info me-2"></span>
+                    Please select the new college where you want to transfer the course registration.
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button class="me-3 fs-medium fw-medium px-4" type="button" data-bs-toggle="modal"
+                        data-bs-target="#editCollege_modal">Cancel</button>
+                    <button class="btn-red fs-medium fw-medium px-4" data-bs-toggle="modal"
+                        data-bs-target="#moveCourses_confirmation" type="button"
+                        id="button_showConfirmation_moveCourses"> Move
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addColleges_confirmation" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="addColleges_confirmation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div id="add_collegeConfirmationContainer">
+                    <h5 class="fw-bold mb-3">Add College Data</h5>
+                    <p class="ms-2">Please confirm that all the information is accurate before adding this college to
+                        the database.</p>
+                    <p class="ms-2"><strong>College Name:</strong> <span id="confirmation_college_name"></span></p>
+                    <p class="ms-2"><strong>Description:</strong> <span id="confirmation_college_description"></span>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-bs-dismiss="modal" class="fs-medium fw-medium px-4 me-3"
+                    onclick="populateColleges()">Cancel</button>
+                <button id="confirm_addCollege" class="btn-green fs-medium fw-medium px-4" data-bs-dismiss="modal">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addCourses_confirmation" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="addCourses_confirmation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div id="add_collegeConfirmationContainer">
+                    <h5 class="fw-bold mb-3"> Add Courses data </h5>
+                    <p class="ms-s"> Please confirm that all the information is accurate before adding this course to
+                        the database.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-bs-dismiss="modal" class="fs-medium fw-medium px-4 me-3"
+                    onclick="populateColleges()">Cancel</button>
+                <button id="confirm_addCourse" class="btn-green fs-medium fw-medium px-4" data-bs-dismiss="modal">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editCollege_confirmation" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="editCollege_confirmation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h5 class="fw-bold mb-3"> Update College </h5>
+                <p class="ms-2"> Please review the changes to the college’s details. This update includes modifications
+                    to the college information and its associated courses. Are you sure you want to proceed with these
+                    changes?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-bs-dismiss="modal" class="fs-medium fw-medium px-4 me-3"
+                    onclick="populateColleges()">Cancel</button>
+                <button id="confirm_updateCollege" class="btn-green fs-medium fw-medium px-4" data-bs-dismiss="modal">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="moveCourses_confirmation" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="moveCourses_confirmation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h5 class="fw-bold mb-3"> Move Course</h5>
+                <p class="ms-2 mb-2"> Are you sure you want to move the course
+                    <span class="fw-medium" id="modal_courseChangeText"></span>
+                    to
+                    <span class="fw-medium" id="modal_collgeChangeText"></span>
+                    <span>. This action will update the system settings but will not affect the associated files. Are
+                        you sure
+                        you want to proceed?</span>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-bs-dismiss="modal" class="fs-medium fw-medium px-4"
+                    onclick="populateColleges()">Cancel</button>
+                <button id="confirm_changeCourse" class="btn-green fw-bold fs-medium fw-medium px-4"
+                    data-bs-dismiss="modal">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteCourseModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="deleteCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-orange border-3">
+            <div class="modal-body">
+                <h5 class="fw-bold mb-3">Delete Course</h5>
+                <p class="ms-2" style="text-align: justify; text-justify: inter-word;">This action will permanently
+                    delete the course data from the database. Note that you cannot delete this course if it is
+                    associated with any documents. Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer ">
+                <button class="button me-3 fs-medium fw-medium px-4" type="button" data-bs-toggle="modal"
+                    data-bs-target="#editCollege_modal">Cancel</button>
+                <button id="confirm_deleteCourseEntry" class="btn-orange text-decoration-none fs-medium fw-medium px-4"
+                    data-bs-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteCollegeModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="deleteCollegeModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-orange border-3">
+            <div class="modal-body">
+                <div class="">
+                    <h5 class="fw-bold mb-3">Delete College?</h5>
+                    <p class="ms-2" style="text-align: justify; text-justify: inter-word;">This action will permanently
+                        delete the college data from the database. Note that you cannot delete this college if it
+                        is associated with any documents. Are you sure you want to proceed?</p>
+                </div>
+            </div>
+            <div class="modal-footer ">
+                <button class="button me-3 fs-medium fw-medium px-4" type="button" data-bs-toggle="modal"
+                    data-bs-target="#editCollege_modal">Cancel</button>
+                <button id="confirm_deleteCollegeEntry" class="btn-orange text-decoration-none fs-medium fw-medium px-4"
+                    data-bs-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

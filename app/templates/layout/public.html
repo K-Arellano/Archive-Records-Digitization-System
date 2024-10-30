@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{{url_for('static',filename='logo/our-logo.png')}}">
+    <link rel="stylesheet" href="{{url_for('static',filename='node_modules/bootstrap/dist/css/bootstrap.min.css')}}" />
+    <link rel="stylesheet"
+        href="{{url_for('static',filename='node_modules/@fortawesome/fontawesome-free/css/all.min.css')}}" />
+
+    <script src="{{url_for('static',filename='node_modules/bootstrap/dist/js/bootstrap.min.js')}}"></script>
+    <script src="{{url_for('static',filename='node_modules/@fortawesome/fontawesome-free/js/all.min.js')}}"></script>
+
+    <link rel="stylesheet" href="{{url_for('static',filename='css/main.css')}}" />
+    {% block style%}{% endblock%}
+</head>
+
+<body>
+
+    {% include '/partials/header.html' %}
+
+    <div class="container-xxl" id="container_content">
+        {% block content %}
+        {% endblock %}
+    </div>
+    
+    {% block scripts %} {% endblock %}
+</body>
+
+</html>

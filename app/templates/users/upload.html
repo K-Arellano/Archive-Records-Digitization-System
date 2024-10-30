@@ -1,0 +1,416 @@
+{% extends 'layout/users.html' %}
+{% block title %}Upload | ARDS{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{{url_for('static', filename='node_modules/cropperjs/dist/cropper.min.css')}}">
+<script src="{{ url_for('static', filename='node_modules/cropperjs/dist/cropper.min.js') }}"></script>
+<link rel="stylesheet" href="{{url_for('static', filename='css/upload.css')}}">
+<link rel="stylesheet" href="{{url_for('static', filename='css/loadingAnimation.css')}}">
+{% endblock %}
+{% block content %}
+
+<section>
+    <div class="d-flex justify-content-between gap-4" style="height: calc(100vh - 4rem ); min-height: 625px;">
+        <div class="flex-grow-1 p-2">
+            <div class="rounded-3 h-100">
+                <div class="h-100 w-100 d-flex justify-content-center align-items-center dashed-border" id="dropzone">
+                    <form action="/scanner" method="post" enctype="multipart/form-data" id="uploadForm">
+                        <input type="file" name="document_image" id="document_image" class="d-none" accept="image/*">
+                    </form>
+                    <div id="previewContainer" class="d-none border">
+                        <img class="m-auto" id="preview" alt="Preview">
+                        <div class="d-flex justify-content-end gap-3 fs-medium"
+                            style="position: absolute; right: 1rem; bottom: 0.5rem">
+                            <button id="cancel_image" class="border-1 fw-medium px-4">Cancel</button>
+                            <button id="continueButton" class="border-0 fw-medium btn-green px-4"> Save </button>
+                            <button id="submitOCR" class="fw-medium border-0 btn-orange d-none" data-bs-toggle="modal"
+                                data-bs-target="#ocr_confirmation">
+                                <span class="fa-solid fa-expand me-3"></span> Scan Text
+                            </button>
+                        </div>
+                    </div>
+                    <div class="drag-text text-center" id="dragText">
+                        <div><span class="fa-regular fa-image fw-bold p-2 mb-3" style="font-size: 100px;"></span></div>
+                        <h4 class="fw-bold mx-4">Drag & Drop your Image here </h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="width: 700px; width: auto;">
+            <div class="p-2">
+                <div id="document_headerContainer">
+                    <div class="my-3 d-flex gap-3">
+                        <div id="form-item" class="flex-grow-1">
+                            <label class="fw-bold ps-2" for="document_filename">Document name</label>
+                            <input type="text" class="form-control prevent-select" id="document_filename"
+                                name="document_filename" placeholder="" required disabled>
+                        </div>
+                        <div id="form-item" style="width: 70px;">
+                            <label class="fw-bold ps-2" for="document_page">Page #</label>
+                            <select class="form-select rounded-3" name="document_page" id="document_page" required>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between my-3 gap-3">
+                        <div id="form-item" class="flex-grow-1" style="min-width: 226px;">
+                            <label class="fw-bold ps-2" for="document_college">College</label>
+                            <select class="form-select rounded-3 text-truncate" name="document_college"
+                                id="document_college" required>
+                                <option></option>
+                            </select>
+                        </div>
+                        <div id="form-item" class="flex-grow-1" style="min-width: 226px;">
+                            <label class="fw-bold ps-2" for="document_course">Course</label>
+                            <select class="form-select rounded-3 text-truncate" name="document_course"
+                                id="document_course" required>
+                                <option></option>
+                            </select>
+                        </div>
+                        <div id="form-item" style="min-width: 120px;">
+                            <label class="fw-bold ps-2" for="document_yearLevel">Year-level</label>
+                            <select class="form-select rounded-3 text-truncate" name="document_yearLevel"
+                                id="document_yearLevel" required>
+                            </select>
+                        </div>
+                        <div id="form-item" style="max-width: 80px;">
+                            <label class="fw-bold ps-2" for="course_section">Section</label>
+                            <input type="text" class="form-control" id="course_section" name="course_section"
+                                placeholder="" maxlength="2" required>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between my-3 gap-3">
+                        <div id="form-item" class="flex-grow-1">
+                            <label class="fw-bold ps-2" for="document_subject_name">Subject</label>
+                            <input type="text" class="form-control" id="document_subject_name"
+                                name="document_subject_name" placeholder="" required>
+                        </div>
+                        <div id="form-item" style="min-width: 130px;">
+                            <label class="fw-bold ps-2" for="document_subject_type">Unit</label>
+                            <select class="form-select rounded-3 text-truncate" name="document_subject_type"
+                                id="document_subject_type" required>
+                            </select>
+                        </div>
+                        <div id="form-item" style="min-width: 105px;">
+                            <label class="fw-bold ps-2" for="document_semester">Semester</label>
+                            <select class="form-select rounded-3 text-truncate" name="document_semester"
+                                id="document_semester" required>
+                                <option value="0"> </option>
+                                <option value="1"> 1st Sem </option>
+                                <option value="2"> 2nd Sem</option>
+                                <option value="3"> Off-Sem </option>
+                            </select>
+                        </div>
+                        <div id="form-item" style="max-width: 165px;">
+                            <label class="fw-bold ps-2" for="documnt_academicYear">Academic Year</label>
+                            <span class="d-flex align-items-center">
+                                <input type="number" class="form-control text-center" id="starting_year"
+                                    name="ending_year" placeholder="YYYY" min="1978" max="9999" required>
+                                <span class="mx-2 fa-solid fa-minus fs-medium"></span>
+                                <input type="number" class="form-control text-center" id="ending_year"
+                                    name="ending_year" placeholder="YYYY" min="1978" max="9999" required>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 table-fixed-head " id="student_listContainer">
+                    <table class="table w-100 table-sm table-borderless" id="studentList">
+                        <thead class="border-bottom fs-medium">
+                            <tr>
+                                <th class="text-center p-2 fs-def">
+                                    <input type="checkbox" class="checkbox form-check-input" id="select-all">
+                                </th>
+                                <th class="fs-medium py-2">Surname</th>
+                                <th class="fs-medium py-2">First name</th>
+                                <th class="fs-medium py-2" style="width:50px"> M.I.</th>
+                                <th class="fs-medium py-2" style="width:60px"> Suffix </th>
+                                <th class="fs-medium" class="px-2 text-center align-self-center" style="width:24px">
+                                    <button class="no-border-button" id="populateInputs">
+                                        <span class="fa-solid fa-plus">
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-end pt-3 gap-5 ">
+                    <span class="d-flex justify-content-end gap-3 align-items-start">
+                        <button class="border-0 px-3 no-border-button" id="select_clear" data-bs-toggle="modal"
+                            data-bs-target="#clearSelctedList_confirmation"> <span
+                                class="fas fa-eraser me-2 fs-medium"></span>
+                            <span class="fs-small">Clear rows</span>
+                        </button>
+                        <button class="border-0 px-3 no-border-button" id="select_remove" data-bs-toggle="modal"
+                            data-bs-target="#deleteSelctedList_confirmation"> <span
+                                class="fa fa-trash me-2 fs-medium"></span>
+                            <span class="fs-small">Remove rows</span>
+                        </button>
+                    </span>
+
+                    <button class="fs-medium border-0 fw-medium btn-red px-4" id="uploadRecord" data-bs-toggle="modal"
+                        data-bs-target="#newRecords_confirmation" disabled> Upload </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock%}
+{% block modals%}
+{% include '/partials/modals/account_modals.html' %}
+{% include '/partials/modals/scanner_modals.html' %}
+{% include '/partials/modals/upload_modals.html' %}
+{% endblock%}
+{% block scripts %}
+<script src="{{url_for('static',filename='js/allertBuilder.js')}}"></script>
+<script src="{{url_for('static',filename='js/document_name.js')}}"></script>
+<script src="{{url_for('static',filename='js/upload_tools.js')}}"></script>
+<script src="{{url_for('static',filename='js/drag_drop.js')}}"></script>
+<script src="{{url_for('static',filename='js/setup_uploadHeader.js')}}"></script>
+
+<script>
+    let scanningModal = new bootstrap.Modal(document.getElementById('scanningAnimation'));
+    let ocr_resultsList = [];
+    let xhr = null;
+
+    function autoScanOCR() {
+        var formData = new FormData();
+        var file = $('#document_image')[0].files[0];
+        formData.append('document_image', file);
+
+        if (file) {
+            scanningModal.show();
+
+            xhr = $.ajax({
+                url: '/scanner/auto/true',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    scanningModal.hide();
+                    if (Array.isArray(data)) {
+                        if (data.length > 0) {
+                            populateResults(data);
+                            checkAllInputs();
+                            generateNotification('autoOCR', 'success');
+                        } else {
+                            let error_modal = new bootstrap.Modal(document.getElementById('error_ocr'));
+                            error_modal.show();
+                        }
+                    }
+                    else {
+                        generateNotification('autoOCR', data);
+                    }
+                },
+                error: function (error) {
+                    if (error.statusText !== 'abort') {
+                        console.error(error);
+                        generateNotification('autoOCR', 'error');
+                    }
+                },
+                complete: function () {
+                    scanningModal.hide();
+                }
+            });
+        }
+    }
+
+    $('#ocr_auto').on('click', function (event) {
+        event.stopPropagation();
+        autoScanOCR();
+    });
+
+    // Event listener for abort button
+    $('#abortAutoScan').on('click', function () {
+        if (xhr) {
+            xhr.abort(); // Abort the ongoing AJAX request
+        }
+        scanningModal.hide();
+    });
+</script>
+<script>
+    var cropImage = document.getElementById('crop_imageSrc');
+    var cropper, reader, file;
+
+    $(document).ready(function () {
+
+        $('#ocr_manual').on('click', function () {
+            var fileInput = $("#document_image")[0];
+            var files = fileInput.files;
+
+            if (files && files.length > 0) {
+                var file = files[0];
+                var done = function (url) {
+                    cropImage.src = url;
+                    $('#ManualScanImageModal').modal('show');
+                };
+
+                if (URL) {
+                    done(URL.createObjectURL(file));
+                } else if (FileReader) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        done(reader.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            } else {
+                alert("Please select an image to crop.");
+            }
+        });
+    });
+
+    $('#ManualScanImageModal').on('shown.bs.modal', function () {
+        cropper = new Cropper(cropImage, {
+            aspectRatio: 0,
+            viewMode: 1,
+        });
+    }).on('hidden.bs.modal', function () {
+        cropper.destroy();
+        cropper = null;
+    });
+
+    $(document).on('click', '#crop_customOcr', function (ev) {
+        let button = $(this);
+        button.prop('disabled', true); // Disable the button to prevent multiple clicks
+        button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span> Scanning...</span>');
+
+        canvas = cropper.getCroppedCanvas();
+        canvas.toBlob(function (blob) {
+            let formData = new FormData();
+            formData.append('document_image', blob, 'cropped_image.jpg');
+
+            $.ajax({
+                url: '/scanner/auto/false',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    button.html('Extract Text'); // Restore original button text
+                    button.prop('disabled', false); // Re-enable the button
+                    if (Array.isArray(data)) {
+                        if (data.length > 0) {
+                            populateResults(data);
+                            checkAllInputs();
+                            generateNotification('manualOCR', 'success');
+                        } else {
+                            let error_modal = new bootstrap.Modal(document.getElementById('error_ocr'));
+                            error_modal.show();
+                        }
+                    }
+                    else {
+                        generateNotification('manualOCR', data);
+                    }
+                },
+                error: function (error) {
+                    console.error(error);
+                    button.html('Extract Text'); // Restore original button text
+                    button.prop('disabled', false); // Re-enable the button
+                    generateNotification('manualOCR', 'error');
+                },
+            });
+        });
+    });
+
+</script>
+<script>
+    function fetchrowValues() {
+        var rows = document.querySelectorAll('tbody tr');
+        var studentList = []; // Initialize an empty array to store student objects
+
+        rows.forEach(function (row) {
+            var student_surname = row.querySelector('#student_surname').value;
+            var student_firstname = row.querySelector('#student_firstname').value;
+            var student_middlename = row.querySelector('#student_middlename').value;
+            var student_suffixname = row.querySelector('#student_suffixname').value;
+
+            var student = {
+                student_surname: student_surname,
+                student_firstname: student_firstname,
+                student_middlename: student_middlename,
+                student_suffixname: student_suffixname
+            };
+
+            studentList.push(student);
+        });
+        return studentList;
+    }
+
+    $('#comfirm_newRecords').on('click', function (event) {
+        event.preventDefault();
+        let upload_DuplicateError = new bootstrap.Modal(document.getElementById('upload_DuplicateError'));
+        var formData = new FormData();
+        var file = $('#document_image')[0].files[0];
+
+        // Append other Document information
+        let document_filename = $('#document_filename').val();
+        let document_college = $('#document_college').val();
+        let document_course = $('#document_course').val();
+        let document_yearLevel = $('#document_yearLevel').val();
+        let course_section = $('#course_section').val();
+
+        let document_subject_name = $('#document_subject_name').val();
+        let document_subject_type = $('#document_subject_type').val();
+        let document_semester = $('#document_semester').val();
+
+        let starting_year = $('#starting_year').val();
+        let ending_year = $('#ending_year').val();
+        let document_academicYear = starting_year && ending_year ? starting_year + '-' + ending_year : '';
+
+        let document_page = $('#document_page').val();
+
+        formData.append('document_filename', document_filename);
+        formData.append('document_college', document_college);
+        formData.append('document_course', document_course);
+        formData.append('document_yearLevel', document_yearLevel);
+        formData.append('course_section', course_section);
+        formData.append('document_subject_name', document_subject_name);
+        formData.append('document_subject_type', document_subject_type);
+        formData.append('document_semester', document_semester);
+        formData.append('document_academicYear', document_academicYear);
+        formData.append('document_page', document_page);
+
+        // Append student data
+        var studentsData = fetchrowValues();
+        formData.append('studentsData', JSON.stringify(studentsData));
+        formData.append('document_image', file);
+
+        console.log(formData);
+        if (file) {
+            $.ajax({
+                url: '/archival/newRecord/document_upload',
+                type: 'POST',
+                data: formData,
+                processData: false,  // Tell jQuery not to process the data
+                contentType: false,  // Tell jQuery not to set contentType
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    switch (data.query_result) {
+                        case 'duplicate':
+                            upload_DuplicateError.show();
+                            break;
+                        default:
+                            generateNotification('uploadFile', data.query_result);
+                            break;
+                    }
+                },
+                error: function (error) {
+                    console.error(error);
+                    generateNotification('uploadFile', 'error');
+                }
+            });
+        }
+    });
+
+</script>
+{% endblock%}

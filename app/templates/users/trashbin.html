@@ -1,0 +1,528 @@
+{% extends 'layout/users.html' %}
+{% block title %}Trash | ARDS{% endblock %}
+{% block style %}
+<link href="{{url_for('static',filename='DataTables/datatables.min.css')}}" rel='stylesheet'>
+<script src="{{url_for('static',filename='DataTables/datatables.min.js')}}"></script>
+<link rel="stylesheet" href="{{url_for('static', filename='css/table.css')}}">
+{% endblock %}
+
+{% block content %}
+<section>
+    <div class="page-header-title p-2 mb-2 ">
+        <h5 class="fw-bold fs-def m-0">Trash</h5>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="flex-grow-1" id="filtersearch_global" style="max-width: 40%;">
+            <input type="text" class="form-control w-full text-truncate fs-medium" id="filterSearch"
+                placeholder="Search...">
+        </div>
+        <div class="d-flex justify-content-end rounded-3 p-2 align-items-center gap-3">
+            <div class="d-flex justify-content-between gap-2" style="max-width: 400px;" id="statsFilterContainer">
+                <button type="button" class="btn-light fw-medium fs-medium px-4" id="show_documents">Document</button>
+                <button type="button" class="btn-light fw-medium fs-medium px-4" id="show_records">Records</button>
+            </div>
+        </div>
+    </div>
+    <table id='trashbinTable' class='display dataTable table-borderless table-hover fc-default fs-medium'
+        cellspacing="0" width="100%">
+    </table>
+</section>
+
+{% endblock%}
+{% block modals%}{% include '/partials/modals/account_modals.html' %}
+{% include '/partials/modals/trashbin_modals.html' %}
+{% endblock%}
+{% block scripts %}
+<script src="{{url_for('static',filename='js/allertBuilder.js')}}"></script>
+<script>
+    var trashDataTable;
+
+    function initializeDataTable(options) {
+        if (trashDataTable) {
+            trashDataTable.destroy(); // Destroy the existing DataTable
+            $('#trashbinTable').empty(); // Clear the table HTML (optional, if needed)
+            $('#trashbinTable').off(); // Remove any remaining event handlers
+        }
+        trashDataTable = $('#trashbinTable').DataTable(options);
+
+        // Rebind events after initialization
+        $('#trashbinTable tbody').on('dblclick', 'tr', function () {
+            var data = trashDataTable.row(this).data();
+            preview(data.image_id);
+        });
+
+        // Unbind and rebind keyup event for search input
+        $('#filterSearch').off('keyup').on('keyup', function () {
+            trashDataTable.draw();
+        });
+    }
+</script>
+<script>
+    function trashDocuments() {
+        const document_option = {
+            stripeClasses: [],
+            language: {
+                paginate: {
+                    previous: '<a class="fa-solid fa-caret-left"></a>',
+                    next: '<a class="fa-solid fa-caret-right"></a>',
+                },
+                'emptyTable': 'No deleted files found. Please check back or refresh the page.'
+            },
+            scrollY: '60vh',
+            scrollX: true,
+            scrollCollapse: true,
+            'processing': true,
+            'responsive': true,
+            'serverSide': true,
+            'serverMethod': 'post',
+            'ajax': {
+                'url': '/admin/trash/manage/data/fetch-data/deleted-files/trash-list',
+                'headers': { 'X-CSRFToken': '{{ csrf_token() }}' },
+                'data': function (data) {
+                    data.filterSearch = $('#filterSearch').val();
+                },
+                'dataSrc': function (json) {
+                    if (!json.aaData) {
+                        return [];
+                    } else {
+                        return json.aaData;
+                    }
+                },
+                'error': function (xhr, error, thrown) {
+                    // Custom error handling
+                    const errorMessage = `An error occurred while loading the data. Please try again later.`;
+                    const errStatus = `AJAX error: ${xhr.status} ${xhr.statusText}.`;
+                    alert(errorMessage);
+                    console.error(errStatus, error, thrown); // Log error for debugging
+                }
+            },
+            'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, "All"]],
+            'deferRender': true,
+            'scroller': true,
+            'columns': [
+                { data: 'Filename', title: 'File', orderable: true, wrap: false, className: 'text-start', width: '100%' },
+                { data: 'studentCount', title: 'Students', orderable: true, wrap: false, className: 'text-center', width: '40px' },
+                { data: 'Section', title: 'Course', orderable: true, wrap: false, className: 'text-center', width: '100px' },
+                { data: 'SchoolYear', title: 'Year', orderable: true, wrap: true, className: 'text-center', width: '100px' },
+                { data: 'File_size', title: 'File size ', orderable: false, wrap: false, className: 'text-center', width: '100px' },
+                { data: 'Trash_date', title: 'Trashed date', orderable: true, wrap: false, className: 'text-center', width: '130px' },
+                {
+                    data: 'editor',
+                    title: 'Deleted by',
+                    orderable: false,
+                    wrap: false,
+                    className: 'text-start',
+                    width: '100px',
+                    "render": function (data, type, row) {
+                        const editor = '<span class="flex-grow-1">' + data + '</span>'
+                        return `<div class="ms-2 fw-medium d-flex align-items-center gap-2 p-0" ><span class="fa-solid fa-circle-user fs-def"></span>` + editor + `</div>`;
+                    }
+                },
+                {
+                    'data': 'id',
+                    title: ' ',
+                    orderable: false,
+                    wrap: true,
+                    width: '50px',
+                    "render": function (data, type, row) {
+                        const recoverfile = `<a id="deleteThis" class="flex-fill text-center" onclick="restoreFile(` + row['id'] + `)"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="right"
+                                                    data-bs-trigger="hover"
+                                                    data-bs-html="true"
+                                                    title="Restore">
+                                                <span class="fa-solid fa-clock-rotate-left fc-default"></span>
+                                            </a>`;
+
+                        const deleteFile = `<a id="deleteThis" class="flex-fill text-center" onclick="deleteTrash(` + row['id'] + `)"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-trigger="hover"
+                                                    data-bs-html="true"
+                                                    title="Delete">
+                                                <span class="fa-solid fa-trash text-danger"></span>
+                                            </a>`;
+
+                        return `<div class="d-flex align-items-center">` + recoverfile + '' + deleteFile + `</div>`;
+                    }
+                }
+            ],
+            "drawCallback": function (settings) {
+                var api = this.api();
+                var rows = api.rows({ page: 'current' }).count();
+                if (rows <= 1) { // Adjust this value based on your needs
+                    // Hide pagination controls
+                    $(api.table().container()).find('.dataTables_paginate').hide();
+                } else {
+                    // Show pagination controls
+                    $(api.table().container()).find('.dataTables_paginate').show();
+                }
+            }
+        };
+
+        initializeDataTable(document_option);
+
+    }
+</script>
+<script>
+    function trashRecords() {
+        const tags_option = {
+            stripeClasses: [],
+            language: {
+                paginate: {
+                    previous: '<a class="fa-solid fa-caret-left"></a>',
+                    next: '<a class="fa-solid fa-caret-right"></a>',
+                },
+                'emptyTable': 'No deleted tags found. Please check back or refresh the page.'
+            },
+            scrollY: '60vh',
+            scrollX: true,
+            scrollCollapse: true,
+            'processing': true,
+            'responsive': true,
+            'serverSide': true,
+            'serverMethod': 'post',
+            'ajax': {
+                'url': '/admin/trash/manage/data/fetch-data/deleted-tags-entries/trash-list',
+                'headers': { 'X-CSRFToken': '{{ csrf_token() }}' },
+                'data': function (data) {
+                    data.filterSearch = $('#filterSearch').val();
+                },
+                'dataSrc': function (json) {
+                    if (!json.aaData) {
+                        return [];
+                    } else {
+                        return json.aaData;
+                    }
+                },
+                'error': function (xhr, error, thrown) {
+                    // Custom error handling
+                    const errorMessage = `An error occurred while loading the data. Please try again later.`;
+                    const errStatus = `AJAX error: ${xhr.status} ${xhr.statusText}.`;
+                    alert(errorMessage);
+                    console.error(errStatus, error, thrown); // Log error for debugging
+                }
+            },
+            'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, "All"]],
+            'deferRender': true,
+            'scroller': true,
+            'columns': [
+                { data: 'FullName', title: 'Full Name', orderable: true, wrap: true, className: ' text-start fw-medium', width: '200px' },
+                { data: 'Filename', title: 'File', orderable: false, wrap: false, className: 'text-start', width: '100%' },
+                { data: 'Section', title: 'Course', orderable: true, wrap: false, className: 'text-center', width: '100px' },
+                { data: 'SchoolYear', title: 'Year', orderable: true, wrap: true, className: 'text-center', width: '100px' },
+                { data: 'Trash_date', title: 'Trashed date', orderable: true, wrap: false, className: 'text-center', width: '130px' },
+                {
+                    data: 'editor',
+                    title: 'Deleted by',
+                    orderable: false,
+                    wrap: false,
+                    className: 'text-start',
+                    width: '100px',
+                    "render": function (data, type, row) {
+                        const editor = '<span class="flex-grow-1">' + data + '</span>'
+                        return `<div class="ms-2 fw-medium d-flex align-items-center gap-2 p-0" ><span class="fa-solid fa-circle-user fs-def"></span>` + editor + `</div>`;
+                    }
+                },
+                {
+                    'data': 'id',
+                    title: ' ',
+                    orderable: false,
+                    wrap: true,
+                    width: '50px',
+                    "render": function (data, type, row) {
+                        const recoverfile = `<a id="deleteThis" class="flex-fill text-center" onclick="restoreFile(` + row['id'] + `)"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="right"
+                                                    data-bs-trigger="hover"
+                                                    data-bs-html="true"
+                                                    title="Restore">
+                                                <span class="fa-solid fa-clock-rotate-left fc-default"></span>
+                                            </a>`;
+
+                        const deleteFile = `<a id="deleteThis" class="flex-fill text-center" onclick="deleteTrash(` + row['id'] + `)"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-trigger="hover"
+                                                    data-bs-html="true"
+                                                    title="Delete">
+                                                <span class="fa-solid fa-trash text-danger"></span>
+                                            </a>`;
+
+                        return `<div class="d-flex align-items-center">` + recoverfile + '' + deleteFile + `</div>`;
+                    }
+                }
+            ],
+            "drawCallback": function (settings) {
+                var api = this.api();
+                var rows = api.rows({ page: 'current' }).count();
+                if (rows <= 1) { // Adjust this value based on your needs
+                    // Hide pagination controls
+                    $(api.table().container()).find('.dataTables_paginate').hide();
+                } else {
+                    // Show pagination controls
+                    $(api.table().container()).find('.dataTables_paginate').show();
+                }
+            }
+        };
+
+        initializeDataTable(tags_option);
+    }
+</script>
+<script>
+    var restoreUrl, deleteURL, restore_type, deleteType;
+    var restoreTitle, restoreText;
+    var restoreErrorTitle, restoreErrorText;
+    var deleteTitle, deleteText;
+
+    function changeDisplayStatus(status) {
+        switch (status) {
+            case 'documents':
+                restoreUrl = '/admin/trash/manage/data/file-list/item-document/restore-file';
+                deleteURL = '/admin/trash/manage/data/file-list/item-document/push-delete-permanent';
+                restore_type = 'restoreFile';
+                deleteType = 'permanentDeleteFile';
+                restoreTitle = `Restore Document`;
+                restoreText = `You are about to restore this document from the trash bin. Restoring will move it back to its original location and make it accessible again. Are you sure you want to proceed with restoring this document?`;
+                restoreErrorTitle = `Document Restoration Error `;
+                restoreErrorText = `It appears that a document with similar content is already active in the database. Please review the existing documents before proceeding with restoration.`;
+                deleteTitle = `Permanent Document Deletion`;
+                deleteText = ` You are about to permanently delete this document. This action cannot be undone, and the document will be removed from the system permanently. Are you absolutely sure you want to proceed with the permanent deletion?`;
+                break;
+            case 'records':
+                restoreUrl = '/admin/trash/manage/data/document/tags-list/restore-records';
+                deleteURL = '/admin/trash/manage/data/document/tags-list/push-delete-permanent';
+                restore_type = 'restoreRecord';
+                deleteType = 'permanentDeleteTag';
+                restoreTitle = `Restore Tag`;
+                restoreText = ` You are about to restore this tag from the trash bin. Restoring it will make it available again and re-associate it with the relevant document and student. Are you sure you want to proceed with this restoration?`;
+                restoreErrorTitle = `Tags Restoration Error `;
+                restoreErrorText = `It appears that a tag with similar content is already active in the database. Please review the existing tag data before proceeding with restoration.`;
+                deleteTitle = ` Permanent Tag Deletion`;
+                deleteText = `You are about to permanently delete this tag. This action will completely remove it from the system and it will no longer be linked to its document or student. This action cannot be undone. Are you sure you want to proceed with the permanent deletion?`;
+                break;
+        }
+
+        document.getElementById('restoreTitle').innerText = restoreTitle;
+        document.getElementById('restoreDescription').innerText = restoreText;
+        document.getElementById('deleteTitle').innerText = deleteTitle;
+        document.getElementById('deleteDescription').innerText = deleteText;
+        document.getElementById('errorTitle').innerText = restoreErrorTitle;
+        document.getElementById('errorDescription').innerText = restoreErrorText;
+    }
+
+    function adjustButtonOpacity(clickedId) {
+        const container = document.querySelector('#statsFilterContainer');
+        const buttons = container.querySelectorAll('button');
+        buttons.forEach(button => {
+            if (button.id === clickedId) {
+                button.style.opacity = '1'; // 100% opacity for clicked button
+                button.classList.remove('fw-medium');
+                button.classList.add('fw-bold');
+            } else {
+                button.style.opacity = '0.5'; // 50% opacity for other buttons
+                button.classList.remove('fw-bold');
+                button.classList.add('fw-medium');
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        document.querySelector('#show_documents').addEventListener('click', function () {
+            adjustButtonOpacity('show_documents');
+            changeDisplayStatus('documents');
+            trashDocuments();
+        });
+        document.querySelector('#show_records').addEventListener('click', function () {
+            adjustButtonOpacity('show_records');
+            changeDisplayStatus('records');
+            trashRecords();
+        });
+
+        const optionsContainer = document.getElementById('selecOptionRestore');
+        const optionItems = optionsContainer.querySelectorAll('.option-item');
+
+        // Function to update the active state
+        function updateActiveState(selectedItemId) {
+            optionItems.forEach(item => {
+                const label_option = item.querySelector('#label_option');
+                if (item.id === selectedItemId) {
+                    item.classList.remove('border-white');
+                    item.classList.add('border-orange', 'selected-option');
+                    label_option.classList.remove('fc-def');
+                    label_option.classList.add('fc-orange');
+                } else {
+                    item.classList.remove('border-orange', 'selected-option');
+                    item.classList.add('border-white');
+                    label_option.classList.remove('fc-orange');
+                    label_option.classList.add('fc-def');
+                }
+            });
+        }
+
+        optionItems.forEach(item => {
+            item.addEventListener('click', () => {
+                updateActiveState(item.id);
+            });
+        });
+    });
+
+    adjustButtonOpacity('show_documents');
+    changeDisplayStatus('documents');
+    trashDocuments();
+
+</script>
+<script>
+    function preview(ImageID) {
+        fetch('/admin/trash/manage/data/file/fetch_data/' + ImageID)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(encodedImage => {
+                let previewImageDisplay = document.getElementById('previewImageDisplay');
+                previewImageDisplay.src = 'data:image/jpeg;base64,' + encodedImage;
+
+                // Show the modal
+                let modal = new bootstrap.Modal(document.getElementById('showPreviewModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+    }
+</script>
+<script>
+
+    function restoreError(documentID, restoreCondition) {
+        let modal = new bootstrap.Modal(document.getElementById('restoreFileError'));
+        const footerModal = document.querySelector('#restoreFileError .modal-footer');
+
+        if (restoreCondition == 'file') {
+            footerModal.classList.remove('d-none');
+            $('#toggle_customRestore').on('click', function (event) {
+                event.preventDefault();
+                customRestore(documentID);
+            });
+        } else {
+            footerModal.classList.add('d-none');
+        }
+        modal.show();
+    }
+
+    function customRestore(documentID) {
+        // Show the modal
+        let modal = new bootstrap.Modal(document.getElementById('customRestoreFile'));
+        modal.show();
+
+        $('#selectOption_restoreFile').on('click', function (event) {
+            event.preventDefault();
+
+            const optionsContainer = document.getElementById('selecOptionRestore');
+            const optionItems = optionsContainer.querySelectorAll('.option-item');
+            let selectedOption = '';
+
+            optionItems.forEach(item => {
+                if (item.classList.contains('selected-option')) {
+                    selectedOption = item.id;
+                }
+            });
+
+            const inactive_file = documentID;
+            let formData = {
+                'inactive_file': inactive_file,
+                'option': selectedOption
+            };
+
+            $.ajax({
+                url: '/admin/trash/manage/data/file-list/item-document/restore-custom/restore-file',
+                type: 'POST',
+                data: (formData),
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    trashDataTable.draw();
+                    switch (data.recover_query) {
+                        case 'duplicate':
+                            restoreError(documentID, 'file');
+                            break;
+                        default:
+                            generateNotification(selectedOption, data.recover_query);
+                            break;
+                    }
+                },
+                //handle the ajax error 
+                error: function (error) {
+                    console.error('Error:', error);
+                    generateNotification(selectedOption, data.recover_query);
+                }
+            });
+
+        });
+    }
+
+
+    function restoreFile(itemID) {
+        let modal = new bootstrap.Modal(document.getElementById('restoreFile_confirmation'));
+        modal.show();
+
+        $('#initial_restoreFile').on('click', function (event) {
+            event.preventDefault();
+
+            var item_id = itemID; // Ensure that this variable is declared with let or const
+            let formData = { 'item_id': item_id };
+
+            $.ajax({
+                url: restoreUrl,
+                type: 'POST',
+                data: (formData),
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    trashDataTable.draw();
+                    switch (data.recover_query) {
+                        case 'duplicate':
+                            restoreError(item_id, 'tags');
+                            break;
+                        default:
+                            generateNotification(restore_type, data.recover_query);
+                            break;
+                    }
+                },
+                //handle the ajax error 
+                error: function (error) {
+                    console.error('Error:', error);
+                    generateNotification(restore_type, 'error');
+                }
+            });
+        });
+    }
+</script>
+<script>
+    function deleteTrash(itemID) {
+        let modal = new bootstrap.Modal(document.getElementById('deleteTrash_confirmation'));
+        modal.show();
+
+        $('#delete_trash').on('click', function (event) {
+            event.preventDefault();
+
+            var item_id = itemID; // Ensure that this variable is declared with let or const
+            let formData = { 'item_id': item_id };
+
+            $.ajax({
+                url: deleteURL,
+                type: 'POST',
+                data: (formData),
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    trashDataTable.draw();
+                    generateNotification(deleteType, data.delete_query);
+                },
+                //handle the ajax error 
+                error: function (error) {
+                    console.error('Error:', error);
+                    generateNotification(deleteType, 'error');
+                }
+            });
+        });
+    }
+</script>
+{% endblock%}

@@ -1,0 +1,398 @@
+{% extends 'layout/users.html' %}
+{% block title %} {{ current_user.username }} | ARDS{% endblock %}
+{% block style %}
+<script src="{{ url_for('static', filename='node_modules/d3/dist/d3.min.js') }}"></script>
+<script src="{{ url_for('static', filename='node_modules/cal-heatmap/dist/cal-heatmap.min.js') }}"></script>
+<script src="{{ url_for('static', filename='node_modules/cal-heatmap/dist/plugins/CalendarLabel.min.js') }}"></script>
+<script src="{{ url_for('static', filename='node_modules/cal-heatmap/dist/plugins/LegendLite.min.js') }}"></script>
+<script src="{{ url_for('static', filename='node_modules/@popperjs/core/dist/umd/popper.min.js') }}"></script>
+<script src="{{ url_for('static', filename='node_modules/cal-heatmap/dist/plugins/Tooltip.min.js') }}"></script>
+<link rel="stylesheet" href="{{url_for('static', filename='node_modules/cal-heatmap/dist/cal-heatmap.css')}}">
+<script src="{{ url_for('static', filename='node_modules/chart.js/dist/chart.umd.js') }}"></script>
+<link href="{{url_for('static',filename='DataTables/datatables.min.css')}}" rel='stylesheet'>
+<script src="{{url_for('static',filename='DataTables/datatables.min.js')}}"></script>
+<link rel="stylesheet" href="{{url_for('static', filename='css/table.css')}}">
+{% endblock %}
+
+{% block content %}
+<style>
+    #upload_Logs_filter {
+        display: none;
+    }
+
+    #upload_Logs_length {
+        display: none;
+    }
+
+    #upload_Logs_wrapper .dataTables_paginate {
+        display: none;
+    }
+</style>
+<section>
+    <div
+        class=" p-4 rounded-top-3 w-full {% if current_user.role == 'staff' %} bg-orange-gradient {% elif current_user.role == 'admin' %} bg-red-gradient {% endif %}">
+    </div>
+    <div class="d-flex justify-content-between w-full">
+        <div class="d-flex p-2 mx-auto gap-3" style="width: 1020px;">
+            <div>
+                <div class="rounded-circle bg-white border-4 border position-relative d-flex align-items-center"
+                    style="width:5rem; height:5rem; top:-3rem">
+                    <div class="fa-solid fa-circle-user m-auto" style="font-size: 4.5rem; ;"></div>
+                </div>
+            </div>
+            <div>
+                <h5 class="fw-bold fs-def" id="profile_username">
+                    {{ current_user.username }}
+                </h5>
+                <h6>
+                    <span class="mx-2 fw-medium fs-small fst-italic"> @{{ current_user.username}}</span>
+                </h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-3 mx-auto" style="width: 1020px;">
+        <div class="p-2 card mb-3">
+            <div class="d-flex" id="progress_container">
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="px-2 mb-2 d-flex fs-medium gap-2">
+                            <span class="fw-bold" id="uploadedByYear"></span>
+                            <span class="fw-medium">Contributions</span>
+                        </h6>
+                        <select name="customYear" id="customYear" class="form-select fs-medium" style="width: 80px;">
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                        </select>
+                    </div>
+                    <div class="p-3" id="progressReport_container">
+                        <div class="overflow-x-auto" id="progress-heatmap" style="height:170;"></div>
+                    </div>
+                    <div class="d-flex justify-content-end p-2 my-2">
+                        <span class="mx-2 d-flex fs-small align-items-center gap-3">
+                            Less <span id="progress_legend"></span> More</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="p-2 card mb-3">
+            <h6 class="fw-medium px-2 mb-2 fs-medium">Progress Analysis</h6>
+            <div class="chartbox py-3 px-2" style="height: 300px;">
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+        <div class="p-2 card mb-3">
+            <h6 class="fw-medium px-2 mb-3 fs-medium">Upload History</h6>
+            <table id='upload_Logs' class='display dataTable table-borderless table-hover fc-default fs-medium'
+                cellspacing="0" width="100%">
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock%}
+{% block modals%}
+{% include '/partials/modals/account_modals.html' %}
+{% endblock%}
+{% block scripts %}
+<script>
+    function initializeCalHeatMap(progress_report) {
+
+        if (!progress_report || progress_report.length === 0) {
+            // Generate dummy items with 0 value for current date and tomorrow's date
+            const currentDate = new Date();
+            const tomorrowDate = new Date();
+            tomorrowDate.setDate(currentDate.getDate() + 1);
+
+            progress_report = [
+                { date: currentDate.toISOString(), value: 0 },
+                { date: tomorrowDate.toISOString(), value: 0 }
+            ];
+        }
+
+        const oldestDate = progress_report.reduce((minDate, report) => {
+            const currentDate = new Date(report.date);
+            return currentDate < minDate ? currentDate : minDate;
+        }, new Date(progress_report[0].date));
+
+        const initialYear = oldestDate.getFullYear();
+        const initialStartDate = `${initialYear}-01-01`;
+
+        const cal = new CalHeatmap();
+        cal.paint(
+            {
+                data: {
+                    source: progress_report,
+                    x: 'date',
+                    y: 'value',
+                    groupY: 'max',
+                },
+                itemSelector: '#progress-heatmap',
+                date: {
+                    start: new Date(initialStartDate),
+                },
+                range: 12,
+                scale: {
+                    color: {
+                        type: 'threshold',
+                        range: ['#0d7a17', '#1d8c25', '#37a446', '#4dd05a'],
+                        domain: [10, 25, 50, 100],
+                    },
+                },
+                domain: {
+                    type: 'month',
+                    gutter: 4,
+                    label: {
+                        text: 'MMM',
+                        textAlign: 'start',
+                        position: 'top'
+                    },
+                },
+                subDomain: {
+                    type: 'ghDay',
+                    radius: 5,
+                    width: 15,
+                    height: 15,
+                    gutter: 2
+                },
+                animationDuration: 0,
+
+            },
+            [
+                [
+                    Tooltip,
+                    {
+                        text: function (date, value, dayjsDate) {
+                            return (
+                                (value ? 'Uploaded ' + value + ' document on ' : 'No Activity on ') +
+                                dayjsDate.format('dddd, MMMM D, YYYY')
+                            );
+                        },
+                    },
+                ],
+                [
+                    LegendLite,
+                    {
+                        includeBlank: true,
+                        itemSelector: '#progress_legend',
+                        radius: 5,
+                        width: 15,
+                        height: 15,
+                        gutter: 2,
+                    },
+                ],
+                [
+                    CalendarLabel,
+                    {
+                        width: 30,
+                        textAlign: 'start',
+                        text: () => dayjs.weekdaysShort().map((d, i) => (i % 2 == 0 ? '' : d)),
+                        padding: [25, 5, 0, 0],
+                    },
+                ],
+            ]
+        );
+    }
+
+    var chart;
+    function setup_chart(data) {
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var gradientFill = ctx.createLinearGradient(0, 0, 0, 300);
+        gradientFill.addColorStop(0, 'rgba(229, 156, 36, 0.5)');
+        gradientFill.addColorStop(0.5, 'rgba(229, 156, 36, 0.25)');
+        gradientFill.addColorStop(1, 'rgba(229, 156, 36, 0)');
+
+        var maxCount = Math.max(...data.map(d => d.count));
+
+        var suggestedMax = maxCount < 15 ? maxCount + 3 : maxCount;
+        var stepSize = suggestedMax <= 15 ? 1 :
+            suggestedMax <= 30 ? 2 :
+                suggestedMax <= 75 ? 5 :
+                    suggestedMax <= 150 ? 10 :
+                        suggestedMax <= 750 ? 50 :
+                            suggestedMax <= 1500 ? 100 :
+                                cosuggestedMaxunt <= 3000 ? 200 : 500;
+
+        if (chart) {
+            chart.destroy();
+        }
+
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.label),
+                datasets: [{
+                    label: 'Archived Document',
+                    data: data.map(d => d.count),
+                    borderColor: '#e59c24',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    backgroundColor: gradientFill,
+                    pointBackgroundColor: 'rgb(229, 156, 36, 1)',
+                    fill: true,
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        position: 'nearest',
+                    },
+                    legend: {
+                        display: false,
+                    },
+
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                onClick: function (e) {
+                    var activePoints = this.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                    if (activePoints.length > 0) {
+                        var firstPoint = activePoints[0];
+                        var label = this.data.labels[firstPoint.index];
+                        var value = this.data.datasets[firstPoint.datasetIndex].data[firstPoint.index];
+                    }
+                },
+                scales: {
+                    y: {
+                        suggestedMin: 0,
+                        suggestedMax: suggestedMax,
+
+                        grid: {
+                            display: true,
+                        },
+                        ticks: {
+                            stepSize: stepSize,
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false,
+                        },
+                    }
+                },
+            },
+        });
+    }
+
+    function updateData(year) {
+        $.ajax({
+            url: '/account/manage/user-profile/profile_details/account_status/list-progress/' + '{{ current_user.username }}' + '-' + year,
+            method: 'GET', // or 'POST' if that's what you intend
+            success: function (data) {
+                initializeCalHeatMap(data.progress_report);
+                document.getElementById('progress-heatmap').innerHTML = '';
+                setup_chart(data.chartData);
+                document.getElementById('uploadedByYear').innerText = data.totalUploadCount + ' ';
+            },
+        });
+    }
+
+    $('#customYear').change(function () {
+        CustomYear = $('#customYear').val();
+        updateData(CustomYear);
+    });
+
+    CustomYear = $('#customYear').val();
+    updateData(CustomYear);
+</script>
+<script>
+    var account_uploadLogs;
+
+    function dataTableFunction() {
+        account_uploadLogs = $('#upload_Logs').DataTable({
+            stripeClasses: [],
+            language: {
+                paginate: {
+                    previous: '<a class="fa-solid fa-caret-left"></a>',
+                    next: '<a class="fa-solid fa-caret-right"></a>',
+                },
+               'emptyTable': 'No account activites found. Please check back or refresh the page.' 
+            },
+            scrollY: '60vh',
+            scrollX: true,
+            scrollCollapse: true,
+            'processing': true,
+            'responsive': true,
+            'serverSide': true,
+            'serverMethod': 'post',
+            'ajax': {
+                'url': '/account/manage/user-profile/account-logs/uploads',
+                'headers': { 'X-CSRFToken': '{{ csrf_token() }}' },
+                'data': function (data) {
+                    data.account_username = '{{ current_user.username }}';
+                },
+               'dataSrc': function (json) {
+                    if (!json.aaData) {
+                        return [];
+                    } else {
+                        return json.aaData;
+                    }
+                },
+                'error': function (xhr, error, thrown) {
+                    // Custom error handling
+                    const errorMessage = `An error occurred while loading the data. Please try again later.`;
+                    const errStatus = `AJAX error: ${xhr.status} ${xhr.statusText}.`;
+                    alert(errorMessage);
+                    console.error(errStatus, error, thrown); // Log error for debugging
+                }
+            },
+            'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, "All"]],
+            'deferRender': true,
+            'scroller': true,
+            'columns': [
+                {
+                    'data': 'Filename',
+                    title: 'File',
+                    orderable: true,
+                    wrap: true,
+                    className: 'text-start',
+                    "render": function (data, type, row) {
+                        const student_name = '<span>' + data + '</span>'
+                        return `<div class="fw-medium d-flex"><span class="fa-solid fa-file-image me-4 fw-small align-self-center"></span>` + student_name + `</div>`;
+                    }
+                },
+                { data: 'File_size', title: 'File size ', orderable: false, wrap: false, className: 'text-center', width: '100px' },
+                { data: 'Upload_date', title: 'Upload_date', orderable: true, wrap: false, className: 'text-center', width: '120px' },
+            ],
+        });
+
+        $('#upload_Logs tbody').on('dblclick', 'tr', function () {
+            var data = account_uploadLogs.row(this).data();
+            preview(data.image_id);
+        });
+    }
+
+    dataTableFunction();
+
+    function preview(ImageID) {
+        fetch('/account/manage/user-profile/account-logs/uploads/select-file/fetch_data/' + ImageID)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(encodedImage => {
+                let previewImageDisplay = document.getElementById('previewImageDisplay');
+                previewImageDisplay.src = 'data:image/jpeg;base64,' + encodedImage;
+
+                // Show the modal
+                let modal = new bootstrap.Modal(document.getElementById('showPreviewUploadFile'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+    }
+</script>
+{% endblock %}

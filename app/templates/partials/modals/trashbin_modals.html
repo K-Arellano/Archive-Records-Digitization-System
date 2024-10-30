@@ -1,0 +1,115 @@
+<div class="modal fade backdrop-modal-present" id="showPreviewModal" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="showPreviewModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered border-0">
+        <div class="modal-content p-0 border-0">
+            <div class="modal-body" style="padding: 0px !important;">
+                <div class="imageContainer p-0">
+                    <img src="" alt="" id="previewImageDisplay">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="restoreFile_confirmation" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="restoreFile_confirmation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div id="restoreItemMessage">
+                    <h5 class="fw-bold mb-3" id="restoreTitle"> Restore File</h5>
+                    <p class="ms-2" id="restoreDescription"> Are you sure you want to resotre this file?</p>
+                </div>
+            </div>
+            <div class="modal-footer ">
+                <button type="button" data-bs-dismiss="modal" class="fs-medium fw-medium px-4 me-3">Cancel</button>
+                <button id="initial_restoreFile" class="btn-green fs-medium fw-medium px-4" data-bs-dismiss="modal">
+                    Restore
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="restoreFileError" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="restoreFileError" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-orange border-3">
+            <div class="modal-body">
+                    <h5 class="fw-bold mb-3" id="errorTitle">Document Restoration Error </h5>
+                    <p class="ms-2" id="errorDescription">It appears that a document with similar content is already active in the database.
+                        Please review the existing documents before proceeding with restoration.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-bs-dismiss="modal"
+                    class="fs-medium fw-medium px-4 me-3 btn-orange" id="toggle_customRestore">
+                    Custom Restore
+                </button>
+                <button class=" fs-medium fw-medium px-4" data-bs-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="customRestoreFile" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="customRestoreFile" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h5 class="fw-bold mb-3"> Custom Restore</h5>
+                    <p class="ms-2">
+                        Use the options below to manage your documents from the trash bin. You can restore an inactive document to become the
+                        active one or merge data from an inactive document into the active document.
+                    </p>
+                </div>
+                <div class="text-start d-flex flex-column gap-2 mx-2" id="selecOptionRestore">
+                    <div id="restore-version" class="p-3 gap-2 option-item bg-opacity-10 rounded-2 border-2 border-white">
+                        <label class="mb-2 fs-medium fw-bold fc-def" id="label_option">Restore Deleted Document</label>
+                        <p>
+                            Restore a deleted document from the trash bin and delete the current active file permanently.
+                        </p>
+                    </div>
+                    <div id="restore-merge" class="p-3 gap-2 option-item bg-opacity-10 rounded-2 border-2 border-white">
+                        <label class="mb-2 fs-medium fw-bold fc-def" id="label_option">Merge Data </label>
+                        <p>
+                            Merge data from an inactive document into the active one. The inactive document will be deleted after merging.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer ">
+                <button type="button" data-bs-dismiss="modal" class="fs-medium fw-medium px-4 me-3">Cancel</button>
+                <button id="selectOption_restoreFile" class="btn-orange fs-medium fw-medium px-4" data-bs-dismiss="modal">
+                    Restore
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="deleteTrash_confirmation" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="deleteTrash_confirmation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content  border-orange border-3">
+            <div class="modal-body">
+                <div id="deleteItemMessage">
+                    <h5 class="fw-bold mb-3" id="deleteTitle">Confirm Permanent Deletion</h5>
+                    <p class="ms-2" id="deleteDescription">This action cannot be undone. Are you sure you want to permanently delete this
+                        file?
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer ">
+                <button type="button" data-bs-dismiss="modal" class="fs-medium fw-medium px-4 me-3">Cancel</button>
+                <button id="delete_trash" class="btn-orange fs-medium fw-medium px-4" data-bs-dismiss="modal">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

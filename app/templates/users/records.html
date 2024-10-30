@@ -1,0 +1,354 @@
+{% extends 'layout/users.html' %}
+{% block title %}Records | ARDS{% endblock %}
+{% block style %}
+<link href="{{url_for('static',filename='DataTables/datatables.min.css')}}" rel='stylesheet'>
+<script src="{{url_for('static',filename='DataTables/datatables.min.js')}}"></script>
+<link rel="stylesheet" href="{{url_for('static', filename='css/table.css')}}">
+{% endblock %}
+
+{% block content %}
+<style>
+    #recordsTable_filter {
+        display: none;
+    }
+
+    #recordsTable_length {
+        display: none;
+    }
+</style>
+
+<section>
+    <div class="page-header-title p-2 mb-2">
+        <h5 class="fw-bold fs-def">Student Records</h5>
+    </div>
+    <div class="d-flex justify-content-between gap-5 mb-3 mx-2">
+        <div class="flex-grow-1" id="filtersearch_global" style="max-width: 40%;">
+            <input type="text" class="form-control w-full text-truncate fs-medium" id="filterSearch"
+                placeholder="Search...">
+        </div>
+        <div class="d-flex justify-content-end gap-3 fs-medium p-0" id="filterContainer">
+            <div class="d-flex justify-content-between gap-2 p-0">
+                <div class="d-flex" style="width: 100px;">
+                    <select id="filterCollege" class="form-select text-truncate fs-medium">
+                        <option value="">College</option>
+                    </select>
+                </div>
+                <div class="d-flex" style="width: 100px;">
+                    <select id="filterCourse" class="form-select text-truncate fs-medium">
+                        <option value="">Course</option>
+                    </select>
+                </div>
+                <div class="d-flex" style="width: 110px;">
+                    <select id="filterSemester" class="form-select fs-medium">
+                        <option value="">Semester</option>
+                        <option value="1st">1st Sem</option>
+                        <option value="2nd">2nd Sem</option>
+                        <option value="Off-Sem">Off-Sem</option>
+                    </select>
+                </div>
+                <div class="d-flex" style="width: 120px;">
+                    <select id="filterYear" class="form-select fs-medium" style="width: 120px;">
+                    </select>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end fs-medium p-0">
+                <div class="d-flex" style="width: 120px;">
+                    <span class="fw-medium p-2">Show</span>
+                    <select id="filterShow" name="filterShow" class="form-select fs-medium">
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="-1">All</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table id='recordsTable' class='display dataTable table-borderless table-hover fc-default fs-medium' cellspacing="0"
+        width="100%">
+    </table>
+</section>
+{% endblock%}
+{% block modals%}
+{% include '/partials/modals/account_modals.html' %}
+{% include '/partials/modals/records_modals.html' %}
+{% endblock%}
+{% block scripts %}
+<script src="{{url_for('static',filename='js/allertBuilder.js')}}"></script>
+<script src="{{url_for('static',filename='js/setup_Filter.js')}}"></script>
+<script>
+    var recordsDataTable;
+
+    function dataTableFunction() {
+        recordsDataTable = $('#recordsTable').DataTable({
+            stripeClasses: [],
+            language: {
+                paginate: {
+                    previous: '<a class="fa-solid fa-caret-left"></a>',
+                    next: '<a class="fa-solid fa-caret-right"></a>',
+                },
+                'emptyTable': 'No records found. Please check back or refresh the page.'
+            },
+            scrollY: '60vh',
+            scrollX: true,
+            scrollCollapse: true,
+            'processing': true,
+            'responsive': true,
+            'serverSide': true,
+            'serverMethod': 'post',
+            'ajax': {
+                'url': '/documents/records/tags/manage/data/fetch/tags/students_list',
+                'headers': { 'X-CSRFToken': '{{ csrf_token() }}' },
+                'data': function (data) {
+                    data.filterSearch = $('#filterSearch').val();
+                    data.filterCollege = $('#filterCollege').val();
+                    data.filterCourse = $('#filterCourse').val();
+                    data.filterSemester = $('#filterSemester').val();
+                    data.filterYear = $('#filterYear').val();
+                },
+                'dataSrc': function (json) {
+                    if (!json.aaData) {
+                        return [];
+                    } else {
+                        return json.aaData;
+                    }
+                },
+                'error': function (xhr, error, thrown) {
+                    // Custom error handling
+                    const errorMessage = `An error occurred while loading the data. Please try again later.`;
+                    const errStatus = `AJAX error: ${xhr.status} ${xhr.statusText}.`;
+                    alert(errorMessage);
+                    console.error(errStatus, error, thrown); // Log error for debugging
+                }
+            },
+            'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, "All"]],
+            'deferRender': true,
+            'scroller': true,
+            'columns': [
+                { data: 'id', orderable: true, title: '#', width: '30px' },
+                { data: 'FullName', title: 'Full Name', orderable: true, wrap: true, className: 'fw-medium', width: '300px' },
+                { data: 'College', title: 'College', orderable: true, wrap: false, className: '', width: '70px' },
+                { data: 'Section', title: 'Course', orderable: true, wrap: false, className: '', width: '200px' },
+                { data: 'Subject', title: 'Subject', orderable: false, wrap: true, },
+                { data: 'Unit', title: 'Unit', orderable: false, wrap: false, className: 'text-center', width: '100px' },
+                { data: 'Semester', title: 'Semester', orderable: false, wrap: false, className: 'text-center', width: '75px' },
+                { data: 'SchoolYear', title: 'Year', orderable: true, wrap: true, className: 'text-center', width: '100px' },
+                {
+                    'data': 'id',
+                    title: 'Action',
+                    wrap: true,
+                    orderable: false,
+                    width: '50px',
+                    "render": function (data, type, row) {
+                        const editLink = `<a id="editThis" class="flex-fill text-center" onclick="editRecord(` + row['id'] + `)"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-trigger="hover"
+                                                    data-bs-html="true"
+                                                    title="Edit">
+                                                <span class="fa-solid fa-pen"></span>
+                                            </a>`;
+
+                        const deleteLink = `<a id="deleteThis" class="flex-fill text-center" onclick="deleteRecord(` + row['id'] + `)"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-trigger="hover"
+                                                    data-bs-html="true"
+                                                    title="Delete">
+                                                <span class="fa-solid fa-trash text-danger"></span>
+                                            </a>`;
+
+                        return `<div class="d-flex fs-small align-items-center">` + editLink + ' ' + deleteLink + `</div>`;
+                    }
+                }
+            ],
+            "drawCallback": function (settings) {
+                var api = this.api();
+                var rows = api.rows({ page: 'current' }).count();
+                if (rows <= 1) { // Adjust this value based on your needs
+                    // Hide pagination controls
+                    $(api.table().container()).find('.dataTables_paginate').hide();
+                } else {
+                    // Show pagination controls
+                    $(api.table().container()).find('.dataTables_paginate').show();
+                }
+            }
+        });
+
+        $('#recordsTable tbody').on('dblclick', 'tr', function () {
+            var data = recordsDataTable.row(this).data();
+            preview(data.image_id);
+        });
+
+        $('#filterSearch').keyup(function () {
+            recordsDataTable.draw();
+        });
+
+        $('#filterCollege').change(function () {
+            recordsDataTable.draw();
+        });
+        $('#filterCourse').change(function () {
+            recordsDataTable.draw();
+        });
+        $('#filterSemester').change(function () {
+            recordsDataTable.draw();
+        });
+        $('#filterYear').change(function () {
+            recordsDataTable.draw();
+        });
+    }
+
+    $('#filterShow').change(function () {
+        var value = $(this).val();  // Get the selected value
+        // Change the select value of #recordsTable_length
+        $('#recordsTable_length select').val(value).change();
+        if (value == -1) {  // If "All" is selected
+            $('.dataTables_wrapper .dataTables_paginate').addClass('d-none');  // Hide the pagination
+        } else {
+            $('.dataTables_wrapper .dataTables_paginate').removeClass('d-none');  // Show the pagination
+        }
+    });
+
+    setTimeout(dataTableFunction(), 1000);
+</script>
+<script>
+    //preview
+    function preview(rowID) {
+        fetch('/documents/records/tags/manage/data/file/fetch_data/' + rowID)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(encodedImage => {
+                let previewImageDisplay = document.getElementById('previewImageDisplay');
+                previewImageDisplay.src = 'data:image/jpeg;base64,' + encodedImage;
+
+                // Show the modal
+                let modal = new bootstrap.Modal(document.getElementById('showPreviewModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+    }
+
+    // Clear the image source when the modal is hidden
+    $('#showPreviewModal').on('hidden.bs.modal', function (e) {
+        document.getElementById('previewImageDisplay').src = '';
+    })
+
+    //edit
+    function editRecord(taggingId) {
+        var taggedDocument = 0
+
+        fetch('/documents/records/tags/manage/data/students/request/credentials/' + taggingId)
+            .then(response => response.json())
+            .then(recordsData => {
+                taggedDocument = recordsData.document;
+                let surname = recordsData.surname;
+                let firstname = recordsData.firstname;
+                let middlename = recordsData.middlename;
+                let suffix = recordsData.suffix;
+                // Create the HTML string with the fetched data
+                let html = `
+                <div id="form-item" class="py-2">
+                    <label class="fw-medium" for="update_Entrysurname">Surname</label>
+                    <input type="text" class="form-control" id="update_Entrysurname" name="update_Entrysurname" placeholder="${surname}" value="${surname}" required>
+                </div>
+                <div id="form-item" class="py-2">
+                    <label class="fw-medium" for="update_Entryfirstname">First Name</label>
+                    <input type="text" class="form-control" id="update_Entryfirstname" name="update_Entryfirstname" placeholder="${firstname}" value="${firstname}" required>
+                </div>
+                <div id="form-item" class="py-2">
+                    <label class="fw-medium" for="update_Entrymiddlename">Middle Initials</label>
+                    <input type="text" class="form-control" id="update_Entrymiddlename" name="update_Entrymiddlename" placeholder="${middlename}" value="${middlename}" required>
+                </div>
+                <div id="form-item" class="py-2">
+                    <label class="fw-medium" for="update_Entrysuffix">Suffix</label>
+                    <input type="text" class="form-control" id="update_Entrysuffix" name="update_Entrysuffix" placeholder="${suffix}" value="${suffix}" required>
+                </div>
+            `;
+                // Set the HTML of the parent element
+                document.getElementById('updateTag_data').innerHTML = html;
+            });
+
+        let modal = new bootstrap.Modal(document.getElementById('EditRecordModal'));
+        modal.show();
+
+        $('#update_entry_credentials').on('click', function (event) {
+            event.preventDefault();
+            let tagging_id = taggingId;
+            let document_id = taggedDocument;
+            let update_surname = $('#update_Entrysurname').val();
+            let update_firstname = $('#update_Entryfirstname').val();
+            let update_middlename = $('#update_Entrymiddlename').val();
+            let update_suffix = $('#update_Entrysuffix').val();
+
+            //set the data
+            let formData = {
+                'tagging_id': tagging_id,
+                'document_id': document_id,
+                'update_surname': update_surname,
+                'update_firstname': update_firstname,
+                'update_middlename': update_middlename,
+                'update_suffix': update_suffix,
+            };
+
+            $.ajax({
+                url: '/documents/records/tags/manage/data/students/credentials/update',
+                type: 'POST',
+                data: formData,
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    recordsDataTable.draw();
+                    switch (data.query_result) {
+                        case 'duplicate':
+                            let modal = new bootstrap.Modal(document.getElementById('update_DuplicateError'));
+                            modal.show();
+                            break;
+                        case 'noChanges':
+                            break;
+                        default:
+                            generateNotification('updateTaggedStudent', data.update_query);
+                            break;
+                    }
+                },
+                //handle the ajax error 
+                error: function (error) {
+                    console.error('Error:', error);
+                    generateNotification('updateTaggedStudent', 'error');
+                }
+            });
+        });
+    }
+    //delete
+    function deleteRecord(tagsEntryId) {
+        let modal = new bootstrap.Modal(document.getElementById('DeleteTag_confirmation'));
+        modal.show();
+
+        $('#delete_entry_credentials').on('click', function (event) {
+            event.preventDefault();
+
+            var tagging_id = tagsEntryId; // Ensure that this variable is declared with let or const
+            let formData = { 'tagging_id': tagging_id };
+
+            $.ajax({
+                url: '/documents/records/tags/manage/data/students/remove/unlink/update/document',
+                type: 'POST',
+                data: (formData),
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                success: function (data) {
+                    recordsDataTable.draw();
+                    generateNotification('deleteTag', data.delete_query);
+                },
+                //handle the ajax error 
+                error: function (error) {
+                    console.error('Error:', error);
+                    generateNotification('deleteTag', 'error');
+                }
+            });
+        });
+    }
+</script>
+{% endblock%}

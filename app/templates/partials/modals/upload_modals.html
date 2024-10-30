@@ -1,0 +1,42 @@
+<div class="modal fade" id="newRecords_confirmation" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="newRecords_confirmation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h5 class="fw-bold mb-3"> Upload Document </h5>
+                <p class="ms-2">Please review all entered data are correct. Are you sure you want to upload this
+                    document
+                    data to the database?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-bs-dismiss="modal" class="fs-medium fw-medium px-4">Cancel</button>
+                <button id="comfirm_newRecords" class="btn-green fs-medium fw-medium px-4" data-bs-dismiss="modal">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="upload_DuplicateError" data-bs-keyboard="false" tabindex="-1"
+    role="dialog" aria-labelledby="upload_DuplicateError" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-orange border-3">
+            <div class="modal-body">
+                <div class="d-flex justify-content-between">
+                    <h5 class="fw-bold mb-3">Duplicate File Detected</h5>
+                    <button type="button" class="no-border-button fs-small" data-bs-dismiss="modal" aria-label="Close"> <i class="fa-solid fa-xmark"></i></button>
+                </div> 
+                <div class="ms-2">
+                    <p class="mb-4">A file with the same name or content already exists. Please rename your file or choose a
+                        different one to upload.</p>
+                </div>
+            </div>
+            <div class="modal-footer ">
+                <button id="delete_document_information" class="btn-orange fs-medium fw-medium px-4" data-bs-dismiss="modal">
+                    Go Back and Edit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

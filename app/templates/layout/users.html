@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{{url_for('static',filename='logo/our-logo.png')}}">
+    <link rel="stylesheet"
+        href="{{url_for('static',filename='node_modules/@fortawesome/fontawesome-free/css/all.min.css')}}" />
+    <link rel="stylesheet" href="{{url_for('static',filename='node_modules/bootstrap/dist/css/bootstrap.min.css')}}" />
+    <link rel="stylesheet" href="{{url_for('static',filename='css/main.css')}}" />
+    <link rel="stylesheet" href="{{url_for('static', filename='css/sidebar.css')}}">
+    <script src="{{url_for('static',filename='node_modules/@fortawesome/fontawesome-free/js/all.min.js')}}"></script>
+    <script src="{{url_for('static',filename='js/jquery.min.js')}}"></script>
+    <script src="{{url_for('static',filename='node_modules/@popperjs/core/dist/umd/popper.min.js')}}"></script>
+    <script src="{{url_for('static',filename='node_modules/bootstrap/dist/js/bootstrap.min.js')}}"></script>
+    {% block style%}{% endblock%}
+</head>
+
+<body style="overflow-y: hidden;">
+    <div class="d-flex justify-content-start">
+        {% include '/partials/sidebar.html' %}
+        <div class="d-flex flex-fill" id="pages_container">
+            <div
+                class="container-fluid flex-nowrap my-2 me-2 border rounded-4 bg-white {% if request.path == url_for('staff.account', user = current_user.username) or request.path == url_for('admin.account', user = current_user.username) %} p-0 {% else %} p-3 {% endif %}">
+                <div class="scrollable_page-section">
+                    {% block content %}
+                    {% endblock %}
+
+                    {% if request.path != url_for('admin.benchmarker') and request.path != url_for('staff.upload') %}
+                    {% include '/partials/footer.html' %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="toast-container position-fixed top-0 end-0 m-3" id="toastContainer"> </div>
+    {% block modals%}{% endblock%}
+    <script src="{{url_for('static',filename='js/heartbeat.js')}}"></script>
+    <script>
+        $(document).ready(function () {
+            $("body").tooltip({ selector: '[data-toggle=tooltip]' });
+        });
+    </script>
+    {% block scripts %} {% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,150 @@
+
+  <div class="modal fade" id="addUser_modal" tabindex="-1" role="dialog" aria-labelledby="addUser_modal" 
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="width:350px;">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h5 class="mb-3 fw-bold">Create Account</h5>
+          <form action="{{ url_for('auth.create_account')}}" method="post" id="add_user">
+            <div class="inputs-forms mb-3">
+              <div id="form-item" class="py-2">
+                <label class="fw-medium" for="newuser_fullname">Staff Name</label>
+                <input type="text" class="form-control" id="newuser_fullname" name="newuser_fullname"
+                  onchange="checkname('fullname', '0', 'newuser_fullname')" placeholder="e.g. Juan Dela Cruz" required>
+              </div>
+              <div id="form-item" class="py-2">
+                <label class="fw-medium" for="newuser_username">Username</label>
+                <input type="text" class="form-control" id="newuser_username" name="newuser_username"
+                  onchange="checkname('username', '0', 'newuser_username')" maxlength="16"
+                  placeholder="e.g. jhoneager234" required>
+              </div>
+              <div id="form-item" class="py-2">
+                <label class="fw-medium" for="newuser_password">Password</label>
+                <input type="password" class="form-control" id="newuser_password" name="newuser_password" minlength="8"
+                  maxlength="50" placeholder="********" required>
+              </div>
+              <div id="form-item" class="py-2">
+                <label class="fw-medium" for="newuser_repassword">Confirm Password</label>
+                <input type="password" class="form-control" id="newuser_repassword" name="newuser_repassword"
+                  minlength="8" maxlength="50" placeholder="********" required>
+              </div>
+              <div id="addUser_password_strengthchecker" class="py-3 container px-0">
+                <div class="row">
+                  <div class="col-7">
+                    <div class="progress my-2" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                      aria-valuemax="100" style="height: 5px;">
+                      <div class="progress-bar"></div>
+                    </div>
+                  </div>
+                  <div class="col text-end" id="addUser_strength_indicator"> No Password</div>
+                </div>
+              </div>
+            </div>
+          </form>
+          <div class="mt-5 d-flex justify-content-end">
+            <button class="button me-3 fs-medium fw-medium px-4" type="button" data-bs-dismiss="modal">Close</button>
+            <button class="btn-red fs-medium fw-medium px-4" data-bs-toggle="modal"
+              data-bs-target="#addUser_confirmation" type="button" id="button_showConfirmationAddUser" disabled>
+              Submit </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="edit_account_modal" tabindex="-1" role="dialog" aria-labelledby="edit_account_modal" data-backdrop=""
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="width:500px;">
+      <div class="modal-content">
+        <div class="modal-body">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="addUser_confirmation" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" 
+    role="dialog" aria-labelledby="addUser_confirmation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <div class="">
+            <h5 class="fw-bold mb-3"> Register Account </h5>
+            <p class="ms-2">Are you sure you want to create a new account?</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" data-bs-dismiss="modal" class="button me-3 fs-medium fw-medium px-4">Cancel</button>
+          <button id="signup_user" class="btn-green text-decoration-none button fs-medium fw-medium px-4"
+            data-bs-dismiss="modal">
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="Change_UserStatus_confirmation" data-bs-backdrop="static" data-bs-keyboard="false"
+    tabindex="-1" role="dialog" aria-labelledby="Change_UserStatus_confirmation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body ">
+        </div>
+        <div class="modal-footer">
+          <button type="button" data-bs-dismiss="modal" class="button me-3 fs-medium fw-medium px-4"
+            onclick="populateUsers('all-any')">
+            Cancel
+          </button>
+          <button id="update_user_status" class="btn-red button fs-medium fw-medium px-4" data-bs-dismiss="modal">
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="UpdateCredentials_confirmation" data-bs-backdrop="static" data-bs-keyboard="false"
+    tabindex="-1" role="dialog" aria-labelledby="UpdateCredentials_confirmation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body ">
+          <div class="">
+            <h5 class="fw-bold mb-3"> Update Profile Credentials </h5>
+            <p class="ms-2"> Are you sure you want to update this user ?</p>
+          </div>
+        </div>
+        <div class="modal-footer ">
+          <button type="button" data-bs-dismiss="modal" class="button me-3 fs-medium fw-medium px-4"
+            onclick="populateUsers('all-any')">Cancel</button>
+          <button id="update_user_credentials" class="btn-green text-decoration-none fs-medium fw-medium px-4"
+            data-bs-dismiss="modal">
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="delete_accountConfirmation" data-bs-backdrop="static" data-bs-keyboard="false"
+    tabindex="-1" role="dialog" aria-labelledby="delete_accountConfirmation" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-orange border-3">
+        <div class="modal-body">
+          <div class="">
+            <h5 class="fw-bold mb-4"> Are you sure to delete this account? </h5>
+            <p class="ms-2" style="text-align: justify;text-justify: inter-word;">Deleting this account will initiate a
+              30-day period
+              during which the account remains inactive. After this period,
+              the account and all related data will be permanently deleted. This action cannot be undone.</p>
+          </div>
+        </div>
+        <div class="modal-footer ">
+          <button type="button" data-bs-toggle="modal" data-bs-target="#edit_account_modal"
+            class="button me-3 fs-medium fw-medium px-4" onclick="populateUsers('all-any')">Cancel</button>
+          <button id="delete_user_profile" class="btn-orange text-decoration-none fs-medium fw-medium px-4"
+            data-bs-dismiss="modal">
+            Continue
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
