@@ -1,0 +1,15 @@
+Open using VSCode
+Install all needed apps (Python 3.12+, NodeJS, and install python extension in VSCode)
+Install Xampp
+Import provided sql file in localhost
+
+install all needed python libraries 
+
+source .venv/Scripts/activate
+pip install -r requirements.txt
+
+---------------------------------------------
+
+install all necessary nodejs api
+cd app/static
+npm install 
