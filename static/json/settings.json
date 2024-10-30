@@ -1,0 +1,93 @@
+{
+    "units": [
+        {
+            "id": 1,
+            "unit_abbrev": "LAB",
+            "unit_name": "Laboratory"
+        },
+        {
+            "id": 2,
+            "unit_abbrev": "LECT",
+            "unit_name": "Lecture"
+        },
+        {
+            "id": 3,
+            "unit_abbrev": "LAB & LECT",
+            "unit_name": "Laboratory and Lecture"
+        }
+    ],
+    "year_level": [
+        {
+            "id": 1,
+            "year_level": "1",
+            "description": "1st year"
+        },
+        {
+            "id": 2,
+            "year_level": "2",
+            "description": "2nd year"
+        },
+        {
+            "id": 3,
+            "year_level": "3",
+            "description": "3rd year"
+        },
+        {
+            "id": 4,
+            "year_level": "4",
+            "description": "4th year"
+        },
+        {
+            "id": 5,
+            "year_level": "5",
+            "description": "5th year"
+        },
+        {
+            "id": 6,
+            "year_level": "6",
+            "description": "6th year"
+        },
+        {
+            "id": 7,
+            "year_level": "Masteral",
+            "description": "Masteral"
+        }
+    ],
+    "college_courses": [
+        {
+            "college_id": 1,
+            "college_name": "CIC",
+            "college_description": "College of Information and Computing",
+            "courses": [
+                {
+                    "course_id": 1,
+                    "course_name": "BSIT",
+                    "course_description": "Bachelor of Science in Information Technology"
+                },
+                {
+                    "course_id": 2,
+                    "course_name": "BLIS",
+                    "course_description": "Bachelor of Library and Information Science"
+                }
+            ]
+        },
+        {
+            "college_id": 3,
+            "college_name": "CBA",
+            "college_description": "College of Business Administration",
+            "courses": []
+        },
+        {
+            "college_id": 4,
+            "college_name": "COE",
+            "college_description": "College of Engineering",
+            "courses": []
+        },
+        {
+            "college_id": 5,
+            "college_name": "CT",
+            "college_description": "College of Technoloy",
+            "courses": []
+        }
+    ]
+}

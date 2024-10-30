@@ -1,0 +1,66 @@
+.table-fixed-head {
+    width: 100%;
+    overflow-y: auto;
+    height: calc(100vh - 225px);
+}
+
+.table-fixed-head thead th {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+}
+
+tr {
+    transition: opacity 350ms ease-out;
+}
+
+table td:nth-child(1),
+table th:nth-child(1) {
+    text-align: center;
+    width: 40px;
+}
+
+table th{
+    text-align: center;
+}
+
+#previewContainer {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    background-color: #5f5f5f;
+    border-radius: 0.5rem;
+    overflow: auto;
+    /* Ensures the image doesn't overflow the container */
+}
+
+#preview {
+    max-height: 100%;
+    width: auto;
+    display: block;
+    max-width: 100%;
+    object-fit: contain;
+    padding: 0.25rem;
+    transition: transform 0.1s ease-in-out;
+    /* Smooth transition for zoom */
+}
+
+.form-check-input {
+    padding: 0.25rem !important;
+}
+
+.form-check-input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: none !important;
+}
+
+.form-check-input:active {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: none !important;
+}

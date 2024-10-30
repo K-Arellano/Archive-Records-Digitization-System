@@ -1,0 +1,158 @@
+/* table ui*/
+#recordsTable,
+#documentsTable,
+#trashbinTable,
+#upload_Logs,
+#recordsTable_wrapper,
+#documentsTable_wrapper,
+#upload_Logs_wrapper {
+    height: 100%;
+}
+
+.dataTables_scrollBody {
+    min-height: 60vh;
+}
+
+table.dataTable thead th {
+    font-weight: 800 !important;
+    text-align: center;
+}
+
+table.dataTable th,
+table.dataTable td {
+    white-space: normal !important;
+    width: auto;
+}
+
+#recordsTable,
+#documentsTable,
+#trashbinTable,
+#upload_Logs,
+.dataTables_scrollHeadInner,
+.dataTables_scrollBody,
+.dataTables_scrollHeadInner table,
+.dataTables_scrollBody table {
+    width: 100% !important;
+}
+
+.text-wrap {
+    white-space: normal !important;
+}
+
+table.dataTable thead th,
+table.dataTable tbody,
+#recordsTable_wrapper .dataTables_scrollBody,
+#documentsTable_wrapper .dataTables_scrollBody,
+#trashbinTable_wrapper .dataTables_scrollBody,
+#upload_Logs_wrapper .dataTables_scrollBody {
+    border-top: none;
+    border-bottom: none;
+}
+
+table.dataTable tbody tr {
+    border-bottom: 0.5px solid rgb(224, 224, 224);
+}
+
+#recordsTable_filter,
+#documentsTable_filter,
+#trashbinTable_filter,
+#upload_Logs_filter {
+    display: none;
+}
+
+#recordsTable_length,
+#documentsTable_length,
+#trashbinTable_length,
+#upload_Logs_length {
+    display: none;
+}
+
+/* table pagination*/
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate {
+    padding: 0.25rem;
+    bottom: 0rem;
+    right: 1rem;
+    justify-content: flex-end;
+}
+
+.dataTables_wrapper .dataTables_info {
+    padding-top: 0.75rem;
+    font-size: small;
+}
+
+#upload_Logs_info,
+#upload_Logs_paginate {
+    display: none;
+}
+
+
+#recordsTable_paginate .paginate_button,
+#documentsTable_paginate .paginate_button,
+#trashbinTable_paginate .paginate_button,
+#upload_Logs_paginate.paginate_button {
+    padding: 0.2rem 0.7rem;
+    border-radius: 0.6rem;
+    background: none;
+    background-color: white;
+    margin: 0rem 0.25rem;
+    text-decoration: none;
+}
+
+#recordsTable_paginate .paginate_button#recordsTable_previous:hover,
+#recordsTable_paginate .paginate_button#recordsTable_next:hover,
+#documentsTable_paginate .paginate_button#documentsTable_previous:hover,
+#documentsTable_paginate .paginate_button#documentsTable_next:hover,
+#trashbinTable_paginate .paginate_button#trashbinTable_previous:hover,
+#trashbinTable_paginate .paginate_button#trashbinTable_next:hover,
+#upload_Logs_paginate .paginate_button#upload_Logs_previous:hover,
+#upload_Logs_paginate .paginate_button#upload_Logs_next:hover {
+    font-weight: normal;
+    border: none;
+}
+
+#recordsTable_wrapper #recordsTable_paginate .paginate_button:hover,
+#documentsTable_wrapper #documentsTable_paginate .paginate_button:hover,
+#trashbinTable_wrapper #trashbinTable_paginate .paginate_button:hover,
+#upload_Logs_wrapper #upload_Logs_paginate .paginate_button:hover {
+    background: none;
+    background-color: white;
+    color: rgb(29, 27, 27) !important;
+    border: rgb(154, 154, 154) solid 1px;
+    text-decoration: none;
+}
+
+#recordsTable_wrapper #recordsTable_paginate .paginate_button.current,
+#documentsTable_wrapper #documentsTable_paginate .paginate_button.current,
+#trashbinTable_wrapper #trashbinTable_paginate .paginate_button.current,
+#upload_Logs_wrapper #upload_Logs_paginate .paginate_button.current {
+    background: none;
+    color: rgb(255, 255, 255) !important;
+    background: linear-gradient(275.52deg, #973939 0.28%, #DC7171 100%) !important;
+    border: none;
+    text-decoration: none;
+}
+
+/* table scrollbar */
+.dataTables_scrollBody::-webkit-scrollbar {
+    width: 3px;
+    position: absolute;
+}
+
+.dataTables_scrollBody::-webkit-scrollbar-thumb {
+    background-color: #a5a5a5;
+}
+
+/* tools*/
+#showPreviewModal #imageContainer {
+    padding: 0.25rem;
+}
+
+#previewImageDisplay {
+    max-height: 100%;
+    width: auto;
+    display: block;
+    max-width: 100%;
+    object-fit: contain;
+    transition: transform 0.1s ease-in-out;
+}

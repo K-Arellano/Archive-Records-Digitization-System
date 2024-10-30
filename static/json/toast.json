@@ -1,0 +1,601 @@
+{
+    "accountManager": {
+        "addUser": {
+            "success": {
+                "title": "User Added",
+                "description": "The user has been successfully added.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Add User Failed",
+                "description": "Failed to add the user. Please try again later.",
+                "type": "error"
+            },
+            "duplicate": {
+                "title": "Duplicate User",
+                "description": "This user already exists.",
+                "type": "error"
+            },
+            "incorrectPassword": {
+                "title": "Incorrect Passowrd",
+                "description": "The password you entered is incorrect. Please check and try again.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred. Please try again later.",
+                "type": "error"
+            }
+        },
+        "updateUserCredentials": {
+            "success": {
+                "title": "User Credentials Updated",
+                "description": "The user credentials have been successfully updated.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Update Failed",
+                "description": "Failed to update user credentials. Please try again later.",
+                "type": "error"
+            },
+            "userNotFound": {
+                "title": "User Not Found",
+                "description": "The user could not be found.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred. Please try again later.",
+                "type": "error"
+            }
+        },
+        "changeUserStatus": {
+            "success": {
+                "title": "User Status Changed",
+                "description": "The user status has been successfully changed.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Change Status Failed",
+                "description": "Failed to change user status. Please try again later.",
+                "type": "error"
+            },
+            "userNotFound": {
+                "title": "User Not Found",
+                "description": "The user could not be found.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred. Please try again later.",
+                "type": "error"
+            }
+        },
+        "removeUser": {
+            "success": {
+                "title": "User Removed",
+                "description": "The user has been successfully removed.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Remove User Failed",
+                "description": "Failed to remove user. Please try again later.",
+                "type": "error"
+            },
+            "cannotDelete": {
+                "title": "Cannot Delete User",
+                "description": "You cannot delete this user.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred. Please try again later.",
+                "type": "error"
+            }
+        }
+    },
+    "collegeManager": {
+        "addCollege": {
+            "success": {
+                "title": "College Added",
+                "description": "The college has been successfully added.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Add College Failed",
+                "description": "Failed to add the college. Please try again later.",
+                "type": "error"
+            },
+            "duplicate": {
+                "title": "Duplicate College",
+                "description": "This college already exists.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred. Please try again later.",
+                "type": "error"
+            }
+        },
+        "addCourse": {
+            "success": {
+                "title": "Course Added",
+                "description": "The course has been successfully added.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Add Course Failed",
+                "description": "Failed to add the course. Please try again later.",
+                "type": "error"
+            },
+            "duplicate": {
+                "title": "Duplicate Course",
+                "description": "This course already exists.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred. Please try again later.",
+                "type": "error"
+            }
+        },
+        "updateCollege": {
+            "success": {
+                "title": "College Information Updated",
+                "description": "The college information has been successfully updated.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Update College Failed",
+                "description": "Failed to update college information. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred. Please try again later.",
+                "type": "error"
+            }
+        },
+        "moveCourses": {
+            "success": {
+                "title": "Courses Moved",
+                "description": "The courses have been successfully moved.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Move Courses Failed",
+                "description": "Failed to move courses. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred. Please try again later.",
+                "type": "error"
+            }
+        },
+        "deleteCollege": {
+            "success": {
+                "title": "College Deleted",
+                "description": "The college has been successfully deleted.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Delete College Failed",
+                "description": "Failed to delete college data. Please try again later.",
+                "type": "error"
+            },
+            "cannotDelete": {
+                "title": "Cannot Delete College",
+                "description": "You cannot delete this college data.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred. Please try again later.",
+                "type": "error"
+            }
+        },
+        "deleteCourses": {
+            "success": {
+                "title": "Courses Deleted",
+                "description": "The courses have been successfully deleted.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Delete Courses Failed",
+                "description": "Failed to delete course data. Please try again later.",
+                "type": "error"
+            },
+            "cannotDelete": {
+                "title": "Cannot Delete Courses",
+                "description": "You cannot delete this course data.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred. Please try again later.",
+                "type": "error"
+            }
+        }
+    },
+    "uploadManager": {
+        "uploadFile": {
+            "success": {
+                "title": "File Uploaded",
+                "description": "The file has been successfully uploaded.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Upload Failed",
+                "description": "Failed to upload the file. Please try again later.",
+                "type": "error"
+            },
+            "duplicate": {
+                "title": "Duplicate File",
+                "description": "This file already exists.",
+                "type": "modal"
+            },
+            "noFile": {
+                "title": "No File Selected",
+                "description": "Please select a file to upload.",
+                "type": "error"
+            },
+            "unsupported": {
+                "title": "Unsupported Image File",
+                "description": "Please select a file with .JPEG or PNG extension. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred during file upload. Please try again later.",
+                "type": "error"
+            }
+        },
+        "manualOCR": {
+            "success": {
+                "title": "OCR Completed",
+                "description": "Manual OCR process completed successfully.",
+                "type": "success"
+            },
+            "noFile": {
+                "title": "No File Selected",
+                "description": "Please select a file for manual OCR processing.",
+                "type": "error"
+            },
+            "failed": {
+                "title": "OCR Failed",
+                "description": "Manual OCR process failed: no text extracted or invalid format detected.",
+                "type": "error"
+            },
+            "unsupported": {
+                "title": "Unsupported Image File",
+                "description": "Please select a file with .JPEG or PNG extension. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred during manual OCR processing. Please try again later.",
+                "type": "error"
+            }
+        },
+        "autoOCR": {
+            "success": {
+                "title": "OCR Completed",
+                "description": "Automatic OCR process completed successfully.",
+                "type": "success"
+            },
+            "noFile": {
+                "title": "No File Selected",
+                "description": "Please select a file for automatic OCR processing.",
+                "type": "error"
+            },
+            "failed": {
+                "title": "OCR Failed",
+                "description": "Automatic OCR process failed: no table detected or valid data extracted.",
+                "type": "error"
+            },
+            "unsupported": {
+                "title": "Unsupported Image File",
+                "description": "Please select a file with .JPEG or PNG extension. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred during automatic OCR processing. Please try again later.",
+                "type": "error"
+            }
+        }
+    },
+    "benchmarkManager": {
+        "manualOCR": {
+            "success": {
+                "title": "OCR Completed",
+                "description": "Manual OCR process completed successfully.",
+                "type": "success"
+            },
+            "noFile": {
+                "title": "No File Selected",
+                "description": "Please select a file for manual OCR processing.",
+                "type": "error"
+            },
+            "failed": {
+                "title": "OCR Failed",
+                "description": "Manual OCR process failed: no text extracted or invalid format detected.",
+                "type": "error"
+            },
+            "unsupported": {
+                "title": "Unsupported Image File",
+                "description": "Please select a file with .JPEG or PNG extension. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred during manual OCR processing. Please try again later.",
+                "type": "error"
+            }
+        },
+        "autoOCR": {
+            "success": {
+                "title": "OCR Completed",
+                "description": "Automatic OCR process completed successfully.",
+                "type": "success"
+            },
+            "noFile": {
+                "title": "No File Selected",
+                "description": "Please select a file for automatic OCR processing.",
+                "type": "error"
+            },
+            "failed": {
+                "title": "OCR Failed",
+                "description": "Automatic OCR process failed: no table detected or valid data extracted.",
+                "type": "error"
+            },
+            "unsupported": {
+                "title": "Unsupported Image File",
+                "description": "Please select a file with .JPEG or PNG extension. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred during automatic OCR processing. Please try again later.",
+                "type": "error"
+            }
+        },
+        "saveBenchmark": {
+            "success": {
+                "title": "Success!",
+                "description": "Test data successfully added to benchmark.",
+                "theme": "success"
+            },
+            "entryExist": {
+                "title": "Test Data Exists",
+                "description": "The test data already exists in the benchmark.",
+                "theme": "warning"
+            },
+            "missingParameters": {
+                "title": "Missing Parameters",
+                "description": "Benchmarking variables are undefined. Please provide valid data.",
+                "theme": "error"
+            },
+            "failed": {
+                "title": "Saving benchmark Failed!",
+                "description": "Failed to add test data to benchmark.",
+                "theme": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred during appending benchmark data. Please try again later.",
+                "type": "error"
+            }
+        },
+        "errorTester": {
+            "error": {
+                "title": "Checker Error",
+                "description": "An error occurred during checking error rates.",
+                "type": "error"
+            }
+        }
+    },
+    "documentsManager": {
+        "updateDocument": {
+            "success": {
+                "title": "Document Updated",
+                "description": "The document information has been successfully updated.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Update Document Failed",
+                "description": "Failed to update document information. Please try again later.",
+                "type": "error"
+            },
+            "notFound": {
+                "title": "File Not Found",
+                "description": "The file associated with this document could not be found in the database.",
+                "type": "error"
+            },
+            "duplicate": {
+                "title": "Duplicate Document",
+                "description": "This document already exists.",
+                "type": "modal"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred. Please try again later.",
+                "type": "error"
+            }
+        },
+        "deleteDocument": {
+            "success": {
+                "title": "Document Deleted",
+                "description": "The document has been successfully deleted.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Delete Document Failed",
+                "description": "Failed to delete the document. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred. Please try again later.",
+                "type": "error"
+            }
+        }
+    },
+    "recordsManager": {
+        "updateTaggedStudent": {
+            "success": {
+                "title": "Student Information Updated",
+                "description": "The tagged student information has been successfully updated.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Update Failed",
+                "description": "Failed to update tagged student information. Please try again later.",
+                "type": "error"
+            },
+            "tagNotFound": {
+                "title": "Tag Not Found",
+                "description": "The specified tag was not found in the database.",
+                "type": "error"
+            },
+            "duplicate": {
+                "title": "Duplicate Entry",
+                "description": "This entry already exists.",
+                "type": "modal"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred. Please try again later.",
+                "type": "error"
+            }
+        },
+        "deleteTag": {
+            "success": {
+                "title": "Tag Deleted",
+                "description": "The tag has been successfully deleted.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Delete Failed",
+                "description": "Failed to delete the tag. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An error occurred. Please try again later.",
+                "type": "error"
+            }
+        }
+    },
+    "trashbinManager": {
+        "restoreFile": {
+            "success": {
+                "title": "File Restored",
+                "description": "The file has been successfully restored to active status.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Restoration Failed",
+                "description": "Failed to restore the file. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An unexpected error occurred while restoring the file. Please try again later.",
+                "type": "error"
+            }
+        },
+        "restore-merge": {
+            "success": {
+                "title": "File Merge Restored",
+                "description": "The data from the inactive file has been successfully merged into the active file.",
+                "type": "success"
+            },
+            "empty": {
+                "title": "No Tags Found",
+                "description": "The inactive file did not contain any data to merge into the active file. Please check the contents and try again.",
+                "type": "warning"
+            },
+            "failed": {
+                "title": "Merge Restoration Failed",
+                "description": "Failed to merge the data from the inactive file into the active file. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An unexpected error occurred while merging the data from the inactive file. Please try again later.",
+                "type": "error"
+            }
+        },
+        "restore-version": {
+            "success": {
+                "title": "Version Restored",
+                "description": "The trashed (inactive) file has been successfully restored, and the current active file has been deleted.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Version Restoration Failed",
+                "description": "Failed to restore the trashed file while deleting the current active file. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An unexpected error occurred while restoring the trashed file and deleting the active file. Please try again later.",
+                "type": "error"
+            }
+        },
+        "permanentDeleteFile": {
+            "success": {
+                "title": "File Permanently Deleted",
+                "description": "The file has been permanently deleted from the trashbin.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Deletion Failed",
+                "description": "Failed to permanently delete the file. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An unexpected error occurred while deleting the file. Please try again later.",
+                "type": "error"
+            }
+        },
+        "restoreRecord": {
+            "success": {
+                "title": "Record Restored",
+                "description": "The record has been successfully restored to active status.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Restoration Failed",
+                "description": "Failed to restore the record. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An unexpected error occurred while restoring the record. Please try again later.",
+                "type": "error"
+            }
+        },
+        "permanentDeleteTag": {
+            "success": {
+                "title": "Tag Permanently Deleted",
+                "description": "The tag has been permanently removed from the system.",
+                "type": "success"
+            },
+            "failed": {
+                "title": "Deletion Failed",
+                "description": "Failed to permanently delete the tag. Please try again later.",
+                "type": "error"
+            },
+            "error": {
+                "title": "Error",
+                "description": "An unexpected error occurred while deleting the tag. Please try again later.",
+                "type": "error"
+            }
+        }
+    },
+    "dashboardManager": {}
+}
